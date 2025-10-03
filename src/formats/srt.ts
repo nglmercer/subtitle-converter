@@ -25,8 +25,8 @@ export function parseSrt(srtContent: string): SubtitleCue[] {
     
     if (!timeMatch) continue;
 
-    const startTime = timeMatch[1];
-    const endTime = timeMatch[2];
+    const startTime = timeMatch[1]!;
+    const endTime = timeMatch[2]!;
 
     // Remaining lines are the text content - preserve whitespace
     const text = lines.slice(2).join('\n'); // Don't trim to preserve whitespace
@@ -114,8 +114,8 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
       continue;
     }
 
-    const startTime = timeMatch[1];
-    const endTime = timeMatch[2];
+    const startTime = timeMatch[1]!;
+    const endTime = timeMatch[2]!;
 
     // Validate text content
     const text = lines.slice(2).join('\n').trim();
@@ -136,8 +136,12 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
 
   // Check for overlapping cues
   for (let i = 0; i < cues.length - 1; i++) {
-    const currentEnd = timeToMilliseconds(cues[i]!.endTime);
-    const nextStart = timeToMilliseconds(cues[i + 1]!.startTime);
+    const currentCue = cues[i];
+    const nextCue = cues[i + 1];
+    if (!currentCue || !nextCue) continue;
+    
+    const currentEnd = timeToMilliseconds(currentCue.endTime);
+    const nextStart = timeToMilliseconds(nextCue.startTime);
     
     if (currentEnd > nextStart) {
       errors.push({
@@ -164,10 +168,10 @@ function timeToMilliseconds(timeString: string): number {
   const match = timeString.match(/^(\d{2}):(\d{2}):(\d{2}),(\d{3})$/);
   if (!match) return 0;
 
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const seconds = parseInt(match[3], 10);
-  const milliseconds = parseInt(match[4], 10);
+  const hours = parseInt(match[1]!, 10);
+  const minutes = parseInt(match[2]!, 10);
+  const seconds = parseInt(match[3]!, 10);
+  const milliseconds = parseInt(match[4]!, 10);
 
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }

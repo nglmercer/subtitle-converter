@@ -17,10 +17,10 @@ export function timeToMilliseconds(timeString: string): number {
     throw new Error(`Invalid time format: ${timeString}`);
   }
 
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const seconds = parseInt(match[3], 10);
-  const milliseconds = parseInt(match[4], 10);
+  const hours = parseInt(match[1]!, 10);
+  const minutes = parseInt(match[2]!, 10);
+  const seconds = parseInt(match[3]!, 10);
+  const milliseconds = parseInt(match[4]!, 10);
 
   // Validate ranges (allow hours up to 24, but reject hours >= 25)
   if (hours > 24 || minutes > 59 || seconds > 59) {

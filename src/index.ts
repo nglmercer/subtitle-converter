@@ -95,8 +95,8 @@ export function analyze(content: string, format: SubtitleFormat): SubtitleAnalys
   return {
     totalCues,
     totalDuration,
-    startTime: cues[0].startTime,
-    endTime: cues[cues.length - 1].endTime,
+    startTime: cues[0]!.startTime,
+    endTime: cues[cues.length - 1]!.endTime,
     averageDuration,
     shortestCue,
     longestCue,
@@ -152,10 +152,10 @@ function timeToMilliseconds(timeString: string): number {
     throw new Error(`Invalid time format: ${timeString}`);
   }
 
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const seconds = parseInt(match[3], 10);
-  const milliseconds = parseInt(match[4], 10);
+  const hours = parseInt(match[1]!, 10);
+  const minutes = parseInt(match[2]!, 10);
+  const seconds = parseInt(match[3]!, 10);
+  const milliseconds = parseInt(match[4]!, 10);
 
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }

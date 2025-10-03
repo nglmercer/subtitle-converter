@@ -50,8 +50,9 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
       }
       
       currentCue = {
-        startTime: timeMatch[1],
-        endTime: timeMatch[2]
+        startTime: timeMatch[1]!,
+        endTime: timeMatch[2]!,
+        text: ''
       };
       cueTextLines = [];
       inCue = true;
@@ -117,7 +118,6 @@ export function validateVttStructure(vttContent: string): ValidationResult {
   let currentCue: Partial<SubtitleCue> = {};
   let inCue = false;
   let cueTextLines: string[] = [];
-  let hasFoundTiming = false;
   let lastTimingLine = -1;
 
   for (let i = 1; i < lines.length; i++) {
@@ -177,7 +177,6 @@ export function validateVttStructure(vttContent: string): ValidationResult {
       };
       cueTextLines = [];
       inCue = true;
-      hasFoundTiming = true;
       lastTimingLine = i;
     } else if (invalidTimeMatch && !timeMatch) {
       // Invalid time format found
@@ -245,10 +244,10 @@ function timeToMilliseconds(timeString: string): number {
   const match = timeString.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
   if (!match) return 0;
 
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const seconds = parseInt(match[3], 10);
-  const milliseconds = parseInt(match[4], 10);
+  const hours = parseInt(match[1]!, 10);
+  const minutes = parseInt(match[2]!, 10);
+  const seconds = parseInt(match[3]!, 10);
+  const milliseconds = parseInt(match[4]!, 10);
 
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }
