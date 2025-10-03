@@ -52,7 +52,6 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
       currentCue = {
         startTime: timeMatch[1]!,
         endTime: timeMatch[2]!,
-        text: ''
       };
       cueTextLines = [];
       inCue = true;
@@ -172,8 +171,8 @@ export function validateVttStructure(vttContent: string): ValidationResult {
       }
       
       currentCue = {
-        startTime: timeMatch[1],
-        endTime: timeMatch[2]
+        startTime: timeMatch[1]!,
+        endTime: timeMatch[2]!,
       };
       cueTextLines = [];
       inCue = true;

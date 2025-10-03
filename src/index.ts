@@ -7,6 +7,7 @@ import type { SubtitleCue, SubtitleAnalysis, ValidationResult, SubtitleFormat } 
 // Format-specific imports (to be implemented)
 import { parseSrt, toSrt, validateSrtStructure } from './formats/srt.js';
 import { parseVtt, toVtt, validateVttStructure } from './formats/vtt.js';
+import { parseAss, toAss, validateAssStructure } from './formats/ass.js';
 
 /**
  * Convert subtitles between different formats
@@ -26,6 +27,9 @@ export function convert(content: string, fromFormat: SubtitleFormat, toFormat: S
     case 'vtt':
       cues = parseVtt(content);
       break;
+    case 'ass':
+      cues = parseAss(content);
+      break;
     default:
       throw new Error(`Unsupported input format: ${fromFormat}`);
   }
@@ -36,6 +40,8 @@ export function convert(content: string, fromFormat: SubtitleFormat, toFormat: S
       return toSrt(cues);
     case 'vtt':
       return toVtt(cues);
+    case 'ass':
+      return toAss(cues);
     default:
       throw new Error(`Unsupported output format: ${toFormat}`);
   }
@@ -56,6 +62,9 @@ export function analyze(content: string, format: SubtitleFormat): SubtitleAnalys
       break;
     case 'vtt':
       cues = parseVtt(content);
+      break;
+    case 'ass':
+      cues = parseAss(content);
       break;
     default:
       throw new Error(`Unsupported format: ${format}`);
@@ -117,6 +126,8 @@ export function validate(content: string, format: SubtitleFormat): ValidationRes
       return validateSrtStructure(content);
     case 'vtt':
       return validateVttStructure(content);
+    case 'ass':
+      return validateAssStructure(content);
     default:
       throw new Error(`Unsupported format: ${format}`);
   }

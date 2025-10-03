@@ -105,7 +105,7 @@ export interface ValidationWarning {
   /**
    * Type of warning
    */
-  type: 'SHORT_DURATION' | 'LONG_DURATION' | 'GAP_BETWEEN_CUES' | 'EXCESSIVE_LINES';
+  type: 'SHORT_DURATION' | 'LONG_DURATION' | 'GAP_BETWEEN_CUES' | 'EXCESSIVE_LINES' | 'EMPTY_CUE';
   /**
    * Descriptive warning message
    */
@@ -123,4 +123,4 @@ export interface ValidationWarning {
 /**
  * Supported subtitle formats
  */
-export type SubtitleFormat = 'srt' | 'vtt';
+export type SubtitleFormat = 'srt' | 'vtt' | 'ass';
