@@ -1,4 +1,8 @@
 /**
+ * Type definitions for subconv-ts
+ */
+
+/**
  * Represents a single subtitle cue/block
  */
 export interface SubtitleCue {
@@ -123,4 +127,4 @@ export interface ValidationWarning {
 /**
  * Supported subtitle formats
  */
-export type SubtitleFormat = 'srt' | 'vtt' | 'ass';
+export type SubtitleFormat = 'srt' | 'vtt' | 'ass' | 'json';

@@ -4,23 +4,45 @@
 
 import type { SubtitleCue, SubtitleAnalysis, ValidationResult, SubtitleFormat } from './types.js';
 
-// Format-specific imports (to be implemented)
+// Format-specific imports
 import { parseSrt, toSrt, validateSrtStructure } from './formats/srt.js';
 import { parseVtt, toVtt, validateVttStructure } from './formats/vtt.js';
 import { parseAss, toAss, validateAssStructure } from './formats/ass.js';
+import { parseJson, toJson, validateJsonStructure } from './formats/json.js';
+
+// Format detection
+import { detectFormat, detectFormatSimple, detectFormatWithConfidence } from './utils/formatDetector.js';
+import type { FormatDetectionResult } from './utils/formatDetector.js';
 
 /**
  * Convert subtitles between different formats
  * @param content - Subtitle content as string
- * @param fromFormat - Source format ('srt' or 'vtt')
- * @param toFormat - Target format ('srt' or 'vtt')
+ * @param fromFormat - Source format ('srt', 'vtt', 'ass', 'json', or 'auto' for automatic detection)
+ * @param toFormat - Target format ('srt', 'vtt', 'ass', or 'json')
  * @returns Converted subtitle content
  */
-export function convert(content: string, fromFormat: SubtitleFormat, toFormat: SubtitleFormat): string {
+export function convert(
+  content: string, 
+  fromFormat: SubtitleFormat | 'auto', 
+  toFormat: SubtitleFormat
+): string {
+  // Auto-detect format if requested
+  let actualFromFormat: SubtitleFormat;
+  
+  if (fromFormat === 'auto') {
+    const detected = detectFormatSimple(content);
+    if (!detected) {
+      throw new Error('Unable to automatically detect subtitle format');
+    }
+    actualFromFormat = detected;
+  } else {
+    actualFromFormat = fromFormat;
+  }
+
   // Parse the input content
   let cues: SubtitleCue[];
   
-  switch (fromFormat) {
+  switch (actualFromFormat) {
     case 'srt':
       cues = parseSrt(content);
       break;
@@ -30,8 +52,11 @@ export function convert(content: string, fromFormat: SubtitleFormat, toFormat: S
     case 'ass':
       cues = parseAss(content);
       break;
+    case 'json':
+      cues = parseJson(content);
+      break;
     default:
-      throw new Error(`Unsupported input format: ${fromFormat}`);
+      throw new Error(`Unsupported input format: ${actualFromFormat}`);
   }
 
   // Convert to target format
@@ -42,6 +67,8 @@ export function convert(content: string, fromFormat: SubtitleFormat, toFormat: S
       return toVtt(cues);
     case 'ass':
       return toAss(cues);
+    case 'json':
+      return toJson(cues);
     default:
       throw new Error(`Unsupported output format: ${toFormat}`);
   }
@@ -50,13 +77,26 @@ export function convert(content: string, fromFormat: SubtitleFormat, toFormat: S
 /**
  * Analyze subtitle content and provide statistics
  * @param content - Subtitle content as string
- * @param format - Format of the subtitle content ('srt' or 'vtt')
+ * @param format - Format of the subtitle content ('srt', 'vtt', 'ass', 'json', or 'auto')
  * @returns Analysis results
  */
-export function analyze(content: string, format: SubtitleFormat): SubtitleAnalysis {
+export function analyze(content: string, format: SubtitleFormat | 'auto' = 'auto'): SubtitleAnalysis {
+  // Auto-detect format if requested
+  let actualFormat: SubtitleFormat;
+  
+  if (format === 'auto') {
+    const detected = detectFormatSimple(content);
+    if (!detected) {
+      throw new Error('Unable to automatically detect subtitle format');
+    }
+    actualFormat = detected;
+  } else {
+    actualFormat = format;
+  }
+
   let cues: SubtitleCue[];
   
-  switch (format) {
+  switch (actualFormat) {
     case 'srt':
       cues = parseSrt(content);
       break;
@@ -66,8 +106,11 @@ export function analyze(content: string, format: SubtitleFormat): SubtitleAnalys
     case 'ass':
       cues = parseAss(content);
       break;
+    case 'json':
+      cues = parseJson(content);
+      break;
     default:
-      throw new Error(`Unsupported format: ${format}`);
+      throw new Error(`Unsupported format: ${actualFormat}`);
   }
 
   if (cues.length === 0) {
@@ -115,21 +158,58 @@ export function analyze(content: string, format: SubtitleFormat): SubtitleAnalys
 }
 
 /**
- * Validate subtitle content
+ * Validate subtitle content (with automatic format detection)
  * @param content - Subtitle content as string
- * @param format - Format of the subtitle content ('srt' or 'vtt')
+ * @param format - Format of the subtitle content ('srt', 'vtt', 'ass', 'json', or 'auto')
  * @returns Validation results
  */
-export function validate(content: string, format: SubtitleFormat): ValidationResult {
-  switch (format) {
+export function validate(content: string, format: SubtitleFormat | 'auto' = 'auto'): ValidationResult {
+  // Auto-detect format if requested
+  let actualFormat: SubtitleFormat;
+  
+  if (format === 'auto') {
+    const detected = detectFormatSimple(content);
+    if (!detected) {
+      return {
+        isValid: false,
+        errors: [{
+          type: 'INVALID_FORMAT',
+          message: 'Unable to automatically detect subtitle format'
+        }],
+        warnings: []
+      };
+    }
+    actualFormat = detected;
+  } else {
+    actualFormat = format;
+  }
+
+  // First, validate that the detected/specified format matches the content
+  const detectionResult = detectFormat(content);
+  
+  if (detectionResult.format !== actualFormat) {
+    return {
+      isValid: false,
+      errors: [{
+        type: 'INVALID_FORMAT',
+        message: `Content appears to be ${detectionResult.format || 'unknown format'}, but ${actualFormat} format was specified/detected`
+      }],
+      warnings: []
+    };
+  }
+
+  // Now validate with the appropriate validator
+  switch (actualFormat) {
     case 'srt':
       return validateSrtStructure(content);
     case 'vtt':
       return validateVttStructure(content);
     case 'ass':
       return validateAssStructure(content);
+    case 'json':
+      return validateJsonStructure(content);
     default:
-      throw new Error(`Unsupported format: ${format}`);
+      throw new Error(`Unsupported format: ${actualFormat}`);
   }
 }
 
@@ -170,8 +250,16 @@ function timeToMilliseconds(timeString: string): number {
 
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }
+
+// Export all format parsers and converters
 export { parseAss, toAss, validateAssStructure };
 export { parseVtt, toVtt, validateVttStructure };
 export { parseSrt, toSrt, validateSrtStructure };
+export { parseJson, toJson, validateJsonStructure };
+
+// Export format detection utilities
+export { detectFormat, detectFormatSimple, detectFormatWithConfidence };
+export type { FormatDetectionResult };
+
 // Re-export types for convenience
 export type { SubtitleCue, SubtitleAnalysis, ValidationResult, ValidationError, ValidationWarning, SubtitleFormat } from './types.js';

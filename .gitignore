@@ -58,3 +58,4 @@ temp/
 *.ass
 *.vtt
 *.srt
+examples/*.json
