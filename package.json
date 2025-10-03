@@ -1,6 +1,6 @@
 {
-  "name": "subtitle-converter",
-  "version": "1.0.0",
+  "name": "subs-converter",
+  "version": "1.0.1",
   "description": "A lightweight, dependency-free TypeScript library for converting subtitle files between different formats",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

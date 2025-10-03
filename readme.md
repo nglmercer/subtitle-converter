@@ -25,15 +25,15 @@ A lightweight, dependency-free TypeScript library for converting subtitle files 
 ## Installation
 
 ```bash
-npm install subtitle-converter
+npm install subs-converter
 ```
 
 ```bash
-bun add subtitle-converter
+bun add subs-converter
 ```
 
 ```bash
-yarn add subtitle-converter
+yarn add subs-converter
 ```
 
 ## Quick Start
@@ -41,7 +41,7 @@ yarn add subtitle-converter
 ### Basic Conversion
 
 ```typescript
-import { convert } from 'subtitle-converter';
+import { convert } from 'subs-converter';
 
 // Convert SRT to VTT
 const vttContent = convert(srtContent, 'srt', 'vtt');
@@ -53,7 +53,7 @@ const result = convert(subtitleContent, 'auto', 'json');
 ### Analyzing Subtitles
 
 ```typescript
-import { analyze } from 'subtitle-converter';
+import { analyze } from 'subs-converter';
 
 const analysis = analyze(subtitleContent, 'srt');
 console.log(analysis);
@@ -73,7 +73,7 @@ console.log(analysis);
 ### Validating Subtitles
 
 ```typescript
-import { validate } from 'subtitle-converter';
+import { validate } from 'subs-converter';
 
 const validation = validate(subtitleContent, 'vtt');
 console.log(validation);
@@ -146,10 +146,10 @@ Advanced format detection with confidence scoring.
 The library also exports format-specific functions for advanced use cases:
 
 ```typescript
-import { parseSrt, toSrt, validateSrtStructure } from 'subtitle-converter';
-import { parseVtt, toVtt, validateVttStructure } from 'subtitle-converter';
-import { parseAss, toAss, validateAssStructure } from 'subtitle-converter';
-import { parseJson, toJson, validateJsonStructure } from 'subtitle-converter';
+import { parseSrt, toSrt, validateSrtStructure } from 'subs-converter';
+import { parseVtt, toVtt, validateVttStructure } from 'subs-converter';
+import { parseAss, toAss, validateAssStructure } from 'subs-converter';
+import { parseJson, toJson, validateJsonStructure } from 'subs-converter';
 ```
 
 ## Type Definitions
@@ -209,7 +209,7 @@ interface ValidationWarning {
 ### Working with Different Formats
 
 ```typescript
-import { convert, detectFormatSimple } from 'subtitle-converter';
+import { convert, detectFormatSimple } from 'subs-converter';
 
 // Read subtitle file
 const content = fs.readFileSync('movie.srt', 'utf8');
@@ -232,7 +232,7 @@ fs.writeFileSync('movie.ass', assContent);
 ### Batch Processing
 
 ```typescript
-import { convert, analyze } from 'subtitle-converter';
+import { convert, analyze } from 'subs-converter';
 
 const files = ['movie1.srt', 'movie2.vtt', 'movie3.ass'];
 
@@ -251,7 +251,7 @@ files.forEach(file => {
 ### Error Handling
 
 ```typescript
-import { convert, validate } from 'subtitle-converter';
+import { convert, validate } from 'subs-converter';
 
 try {
   // Validate first
