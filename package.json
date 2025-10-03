@@ -1,0 +1,32 @@
+{
+  "name": "subconv-ts",
+  "version": "1.0.0",
+  "description": "A lightweight, dependency-free TypeScript library for converting subtitle files between different formats",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "build": "bun build ./src/index.ts --outdir ./dist",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "subtitles",
+    "srt",
+    "vtt",
+    "conversion",
+    "typescript",
+    "bun"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
