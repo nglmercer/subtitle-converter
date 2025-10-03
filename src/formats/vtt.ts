@@ -11,7 +11,7 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
   
   // Check for WEBVTT header
   if (!lines[0]?.startsWith('WEBVTT')) {
-    return cues; // Invalid VTT file
+    throw new Error('Invalid VTT file: missing WEBVTT header');
   }
 
   let currentCue: Partial<SubtitleCue> = {};
@@ -78,13 +78,13 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
  * @returns VTT formatted string
  */
 export function toVtt(cues: SubtitleCue[]): string {
-  let vttContent = 'WEBVTT\n\n';
+  let vttContent = 'WEBVTT';
   
   if (cues.length === 0) {
-    return vttContent;
+    return vttContent; // Return just "WEBVTT" for empty array
   }
   
-  vttContent += cues
+  vttContent += '\n\n' + cues
     .map((cue) => {
       const timeRange = `${cue.startTime} --> ${cue.endTime}`;
       return `${timeRange}\n${cue.text}`;
@@ -117,34 +117,56 @@ export function validateVttStructure(vttContent: string): ValidationResult {
   let currentCue: Partial<SubtitleCue> = {};
   let inCue = false;
   let cueTextLines: string[] = [];
+  let hasFoundTiming = false;
+  let lastTimingLine = -1;
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]?.trim();
     
     // Skip empty lines and metadata
     if (!line || line.startsWith('NOTE') || line.startsWith('STYLE')) {
-      if (inCue && cueTextLines.length > 0) {
+      if (inCue && lastTimingLine !== -1 && i > lastTimingLine + 1) {
+        // Check if we have an empty cue (timing but no text)
+        if (cueTextLines.length === 0) {
+          errors.push({
+            type: 'EMPTY_CUE',
+            message: `Empty cue text`,
+            lineNumber: lastTimingLine + 1
+          });
+        }
+        
         // End of current cue
         currentCue.text = cueTextLines.join('\n').trim();
-        if (currentCue.startTime && currentCue.endTime && currentCue.text) {
+        if (currentCue.startTime && currentCue.endTime) {
           cues.push(currentCue as SubtitleCue);
         }
         currentCue = {};
         cueTextLines = [];
         inCue = false;
+        lastTimingLine = -1;
       }
       continue;
     }
 
     // Check if this is a timing line
     const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/);
+    const invalidTimeMatch = line.match(/^(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})/);
     
     if (timeMatch) {
       // Start of a new cue
+      if (inCue && lastTimingLine !== -1 && cueTextLines.length === 0) {
+        // Previous cue had timing but no text
+        errors.push({
+          type: 'EMPTY_CUE',
+          message: `Empty cue text`,
+          lineNumber: lastTimingLine + 1
+        });
+      }
+      
       if (inCue && cueTextLines.length > 0) {
         // Save previous cue
         currentCue.text = cueTextLines.join('\n').trim();
-        if (currentCue.startTime && currentCue.endTime && currentCue.text) {
+        if (currentCue.startTime && currentCue.endTime) {
           cues.push(currentCue as SubtitleCue);
         }
       }
@@ -155,6 +177,19 @@ export function validateVttStructure(vttContent: string): ValidationResult {
       };
       cueTextLines = [];
       inCue = true;
+      hasFoundTiming = true;
+      lastTimingLine = i;
+    } else if (invalidTimeMatch && !timeMatch) {
+      // Invalid time format found
+      errors.push({
+        type: 'INVALID_TIMECODE',
+        message: `Invalid time format: ${line}`,
+        lineNumber: i + 1
+      });
+      inCue = false;
+      currentCue = {};
+      cueTextLines = [];
+      lastTimingLine = -1;
     } else if (inCue) {
       // This is text content
       cueTextLines.push(line);
@@ -162,37 +197,17 @@ export function validateVttStructure(vttContent: string): ValidationResult {
   }
 
   // Handle last cue
-  if (inCue && cueTextLines.length > 0 && currentCue.startTime && currentCue.endTime) {
-    currentCue.text = cueTextLines.join('\n').trim();
-    if (currentCue.text) {
-      cues.push(currentCue as SubtitleCue);
-    }
-  }
-
-  // Validate each cue
-  for (let i = 0; i < cues.length; i++) {
-    const cue = cues[i];
-    if (!cue) continue;
-    
-    if (!cue.text?.trim()) {
+  if (inCue && currentCue.startTime && currentCue.endTime) {
+    if (cueTextLines.length === 0) {
+      // Last cue has timing but no text
       errors.push({
         type: 'EMPTY_CUE',
-        message: `Empty cue text in cue ${i + 1}`,
-        cueIndex: i
+        message: `Empty cue text`,
+        lineNumber: lastTimingLine + 1
       });
     }
-
-    // Validate time format
-    const startMatch = cue.startTime?.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
-    const endMatch = cue.endTime?.match(/^\d{2}:\d{2}:\d{2}\.\d{3}$/);
-    
-    if (!startMatch || !endMatch) {
-      errors.push({
-        type: 'INVALID_TIMECODE',
-        message: `Invalid time format in cue ${i + 1}`,
-        cueIndex: i
-      });
-    }
+    currentCue.text = cueTextLines.join('\n').trim();
+    cues.push(currentCue as SubtitleCue);
   }
 
   // Check for overlapping cues

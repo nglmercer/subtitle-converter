@@ -2,86 +2,163 @@
  * Subconv-ts: A lightweight, dependency-free TypeScript library for converting subtitle files
  */
 
-import type { SubtitleFormat, SubtitleCue, SubtitleAnalysis, ValidationResult } from './types.js';
+import type { SubtitleCue, SubtitleAnalysis, ValidationResult, SubtitleFormat } from './types.js';
 
-// Import format-specific modules (will be implemented later)
-// import { parseSrt, toSrt, validateSrtStructure } from './formats/srt.js';
-// import { parseVtt, toVtt, validateVttStructure } from './formats/vtt.js';
-// import { analyzeCues } from './utils/analyzer.js';
+// Format-specific imports (to be implemented)
+import { parseSrt, toSrt, validateSrtStructure } from './formats/srt.js';
+import { parseVtt, toVtt, validateVttStructure } from './formats/vtt.js';
 
 /**
- * Convert subtitle content from one format to another
- * @param content - The complete subtitle file content as a string
- * @param from - The source format ('srt' | 'vtt')
- * @param to - The target format ('srt' | 'vtt')
- * @returns String with the subtitle content in the target format
- * @throws Error if the input or output format is not supported
+ * Convert subtitles between different formats
+ * @param content - Subtitle content as string
+ * @param fromFormat - Source format ('srt' or 'vtt')
+ * @param toFormat - Target format ('srt' or 'vtt')
+ * @returns Converted subtitle content
  */
-export function convert(content: string, from: SubtitleFormat, to: SubtitleFormat): string {
-  if (from === to) {
-    return content;
+export function convert(content: string, fromFormat: SubtitleFormat, toFormat: SubtitleFormat): string {
+  // Parse the input content
+  let cues: SubtitleCue[];
+  
+  switch (fromFormat) {
+    case 'srt':
+      cues = parseSrt(content);
+      break;
+    case 'vtt':
+      cues = parseVtt(content);
+      break;
+    default:
+      throw new Error(`Unsupported input format: ${fromFormat}`);
   }
 
-  if (from !== 'srt' && from !== 'vtt') {
-    throw new Error(`Unsupported input format: ${from}`);
+  // Convert to target format
+  switch (toFormat) {
+    case 'srt':
+      return toSrt(cues);
+    case 'vtt':
+      return toVtt(cues);
+    default:
+      throw new Error(`Unsupported output format: ${toFormat}`);
   }
-
-  if (to !== 'srt' && to !== 'vtt') {
-    throw new Error(`Unsupported output format: ${to}`);
-  }
-
-  // Placeholder implementation - will be replaced with actual conversion logic
-  throw new Error('Conversion not yet implemented');
 }
 
 /**
- * Analyze a subtitle file and provide detailed information about its content
- * @param content - The complete subtitle file content as a string
- * @param format - The format of the file ('srt' | 'vtt')
- * @returns SubtitleAnalysis object with detailed information about the file
- * @throws Error if the format is not supported or the content is invalid
+ * Analyze subtitle content and provide statistics
+ * @param content - Subtitle content as string
+ * @param format - Format of the subtitle content ('srt' or 'vtt')
+ * @returns Analysis results
  */
 export function analyze(content: string, format: SubtitleFormat): SubtitleAnalysis {
-  if (format !== 'srt' && format !== 'vtt') {
-    throw new Error(`Unsupported format: ${format}`);
+  let cues: SubtitleCue[];
+  
+  switch (format) {
+    case 'srt':
+      cues = parseSrt(content);
+      break;
+    case 'vtt':
+      cues = parseVtt(content);
+      break;
+    default:
+      throw new Error(`Unsupported format: ${format}`);
   }
 
-  // Placeholder implementation - will be replaced with actual analysis logic
-  throw new Error('Analysis not yet implemented');
-}
-
-/**
- * Validate the integrity and consistency of a subtitle file
- * @param content - The complete subtitle file content as a string
- * @param format - The format of the file ('srt' | 'vtt')
- * @returns ValidationResult with validity status, errors and warnings
- */
-export function validate(content: string, format: SubtitleFormat): ValidationResult {
-  if (format !== 'srt' && format !== 'vtt') {
+  if (cues.length === 0) {
     return {
-      isValid: false,
-      errors: [{
-        type: 'INVALID_FORMAT',
-        message: `Unsupported format: ${format}`
-      }],
-      warnings: []
+      totalCues: 0,
+      totalDuration: 0,
+      startTime: '00:00:00.000',
+      endTime: '00:00:00.000',
+      averageDuration: 0,
+      shortestCue: { startTime: '00:00:00.000', endTime: '00:00:00.000', text: '', duration: 0 },
+      longestCue: { startTime: '00:00:00.000', endTime: '00:00:00.000', text: '', duration: 0 },
+      totalLines: 0,
+      averageLinesPerCue: 0
     };
   }
 
-  // Placeholder implementation - will be replaced with actual validation logic
+  // Calculate durations for each cue
+  const cueDurations = cues.map(cue => ({
+    ...cue,
+    duration: timeToMilliseconds(cue.endTime) - timeToMilliseconds(cue.startTime)
+  }));
+
+  // Find shortest and longest cues
+  const shortestCue = cueDurations.reduce((min, cue) => cue.duration < min.duration ? cue : min);
+  const longestCue = cueDurations.reduce((max, cue) => cue.duration > max.duration ? cue : max);
+
+  // Calculate basic statistics
+  const totalCues = cues.length;
+  const totalDuration = calculateTotalDuration(cues);
+  const averageDuration = totalDuration / totalCues;
+  const totalLines = cues.reduce((sum, cue) => sum + cue.text.split('\n').length, 0);
+  const averageLinesPerCue = totalLines / totalCues;
+
   return {
-    isValid: true,
-    errors: [],
-    warnings: []
+    totalCues,
+    totalDuration,
+    startTime: cues[0].startTime,
+    endTime: cues[cues.length - 1].endTime,
+    averageDuration,
+    shortestCue,
+    longestCue,
+    totalLines,
+    averageLinesPerCue
   };
 }
 
-// Re-export types for external use
-export type { 
-  SubtitleFormat, 
-  SubtitleCue, 
-  SubtitleAnalysis, 
-  ValidationResult,
-  ValidationError,
-  ValidationWarning 
-} from './types.js';
+/**
+ * Validate subtitle content
+ * @param content - Subtitle content as string
+ * @param format - Format of the subtitle content ('srt' or 'vtt')
+ * @returns Validation results
+ */
+export function validate(content: string, format: SubtitleFormat): ValidationResult {
+  switch (format) {
+    case 'srt':
+      return validateSrtStructure(content);
+    case 'vtt':
+      return validateVttStructure(content);
+    default:
+      throw new Error(`Unsupported format: ${format}`);
+  }
+}
+
+/**
+ * Helper function to calculate total duration of all cues
+ * @param cues - Array of subtitle cues
+ * @returns Total duration in milliseconds
+ */
+function calculateTotalDuration(cues: SubtitleCue[]): number {
+  if (cues.length === 0) return 0;
+  
+  // Simple implementation: sum of all cue durations
+  return cues.reduce((total, cue) => {
+    const startMs = timeToMilliseconds(cue.startTime);
+    const endMs = timeToMilliseconds(cue.endTime);
+    return total + (endMs - startMs);
+  }, 0);
+}
+
+/**
+ * Convert time string to milliseconds (helper function)
+ * @param timeString - Time in format HH:MM:SS,mmm (SRT) or HH:MM:SS.mmm (VTT)
+ * @returns Time in milliseconds
+ */
+function timeToMilliseconds(timeString: string): number {
+  // Handle both SRT (comma) and VTT (dot) formats
+  const normalizedTime = timeString.replace(',', '.');
+  const match = normalizedTime.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
+  
+  if (!match) {
+    throw new Error(`Invalid time format: ${timeString}`);
+  }
+
+  const hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const seconds = parseInt(match[3], 10);
+  const milliseconds = parseInt(match[4], 10);
+
+  return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
+}
+
+// Re-export types for convenience
+export type { SubtitleCue, SubtitleAnalysis, ValidationResult, ValidationError, ValidationWarning, SubtitleFormat } from './types.js';

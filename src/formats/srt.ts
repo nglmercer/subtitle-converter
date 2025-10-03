@@ -10,7 +10,7 @@ export function parseSrt(srtContent: string): SubtitleCue[] {
   const blocks = srtContent.trim().split(/\n\n+/);
 
   for (const block of blocks) {
-    const lines = block.trim().split('\n');
+    const lines = block.split('\n'); // Don't trim individual lines to preserve whitespace
     if (lines.length < 2) continue;
 
     // First line should be the cue number (we'll validate but not use it)
@@ -28,8 +28,8 @@ export function parseSrt(srtContent: string): SubtitleCue[] {
     const startTime = timeMatch[1];
     const endTime = timeMatch[2];
 
-    // Remaining lines are the text content
-    const text = lines.slice(2).join('\n').trim();
+    // Remaining lines are the text content - preserve whitespace
+    const text = lines.slice(2).join('\n'); // Don't trim to preserve whitespace
 
     cues.push({
       startTime,
