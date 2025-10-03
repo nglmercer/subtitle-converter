@@ -1,7 +1,10 @@
+// Parche completo para src/formats/vtt.js
+
 import type { SubtitleCue, ValidationResult, ValidationError, ValidationWarning } from '../types.js';
 
 /**
  * Parse VTT content and convert it to an array of SubtitleCue objects
+ * ACEPTA TANTO PUNTOS COMO COMAS EN LOS TIEMPOS
  * @param vttContent - Complete VTT file content as string
  * @returns Array of SubtitleCue objects
  */
@@ -36,8 +39,8 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
       continue;
     }
 
-    // Check if this is a timing line
-    const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/);
+    // Check if this is a timing line - ACEPTA TANTO PUNTOS COMO COMAS
+    const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[.,]\d{3})/);
     
     if (timeMatch) {
       // Start of a new cue
@@ -49,9 +52,10 @@ export function parseVtt(vttContent: string): SubtitleCue[] {
         }
       }
       
+      // Normalizar: convertir comas a puntos para formato estándar
       currentCue = {
-        startTime: timeMatch[1]!,
-        endTime: timeMatch[2]!,
+        startTime: timeMatch[1]!.replace(',', '.'),
+        endTime: timeMatch[2]!.replace(',', '.'),
       };
       cueTextLines = [];
       inCue = true;
@@ -81,12 +85,15 @@ export function toVtt(cues: SubtitleCue[]): string {
   let vttContent = 'WEBVTT';
   
   if (cues.length === 0) {
-    return vttContent; // Return just "WEBVTT" for empty array
+    return vttContent;
   }
   
   vttContent += '\n\n' + cues
     .map((cue) => {
-      const timeRange = `${cue.startTime} --> ${cue.endTime}`;
+      // Asegurar que los tiempos usen puntos (formato estándar VTT)
+      const startTime = cue.startTime.replace(',', '.');
+      const endTime = cue.endTime.replace(',', '.');
+      const timeRange = `${startTime} --> ${endTime}`;
       return `${timeRange}\n${cue.text}`;
     })
     .join('\n\n');
@@ -95,7 +102,7 @@ export function toVtt(cues: SubtitleCue[]): string {
 }
 
 /**
- * Validate VTT file structure
+ * Validate VTT file structure (FIXED VERSION)
  * @param vttContent - Complete VTT file content as string
  * @returns ValidationResult with errors and warnings
  */
@@ -147,9 +154,8 @@ export function validateVttStructure(vttContent: string): ValidationResult {
       continue;
     }
 
-    // Check if this is a timing line
-    const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/);
-    const invalidTimeMatch = line.match(/^(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})/);
+    // Check if this is a timing line - ACEPTA TANTO PUNTOS COMO COMAS
+    const timeMatch = line.match(/^(\d{2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[.,]\d{3})/);
     
     if (timeMatch) {
       // Start of a new cue
@@ -170,34 +176,42 @@ export function validateVttStructure(vttContent: string): ValidationResult {
         }
       }
       
+      // Normalizar el tiempo: convertir comas a puntos si es necesario
+      const startTime = timeMatch[1]!.replace(',', '.');
+      const endTime = timeMatch[2]!.replace(',', '.');
+      
+      // Agregar advertencia si se usaron comas (no es estándar pero lo aceptamos)
+      if (timeMatch[1]!.includes(',') || timeMatch[2]!.includes(',')) {
+        warnings.push({
+          type: 'LONG_DURATION',
+          message: `Non-standard time format at line ${i + 1}: VTT standard uses dots, not commas`,
+          lineNumber: i + 1
+        });
+      }
+      
       currentCue = {
-        startTime: timeMatch[1]!,
-        endTime: timeMatch[2]!,
+        startTime,
+        endTime,
       };
       cueTextLines = [];
       inCue = true;
       lastTimingLine = i;
-    } else if (invalidTimeMatch && !timeMatch) {
-      // Invalid time format found
-      errors.push({
-        type: 'INVALID_TIMECODE',
-        message: `Invalid time format: ${line}`,
-        lineNumber: i + 1
-      });
-      inCue = false;
-      currentCue = {};
-      cueTextLines = [];
-      lastTimingLine = -1;
     } else if (inCue) {
       // This is text content
       cueTextLines.push(line);
+    } else if (line.match(/^\d{2}:\d{2}:\d{2}/)) {
+      // Parece un tiempo pero con formato incorrecto
+      errors.push({
+        type: 'INVALID_TIMECODE',
+        message: `Invalid time format at line ${i + 1}: ${line}`,
+        lineNumber: i + 1
+      });
     }
   }
 
   // Handle last cue
   if (inCue && currentCue.startTime && currentCue.endTime) {
     if (cueTextLines.length === 0) {
-      // Last cue has timing but no text
       errors.push({
         type: 'EMPTY_CUE',
         message: `Empty cue text`,
@@ -235,12 +249,13 @@ export function validateVttStructure(vttContent: string): ValidationResult {
 }
 
 /**
- * Convert VTT time format (HH:MM:SS.mmm) to milliseconds
- * @param timeString - Time in HH:MM:SS.mmm format
+ * Convert VTT time format (HH:MM:SS.mmm or HH:MM:SS,mmm) to milliseconds
+ * @param timeString - Time in HH:MM:SS.mmm or HH:MM:SS,mmm format
  * @returns Time in milliseconds
  */
 function timeToMilliseconds(timeString: string): number {
-  const match = timeString.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
+  const normalized = timeString.replace(',', '.');
+  const match = normalized.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
   if (!match) return 0;
 
   const hours = parseInt(match[1]!, 10);

@@ -284,8 +284,13 @@ Hello world`,
     
     invalidTimeFormat: `WEBVTT
 
-00:00:01,000 --> 00:00:03.000
-Invalid time format`,
+00:00:01.00 --> 00:00:03.000
+Invalid time format - only 2 digits for milliseconds`,
+    
+    invalidTimeFormatMalformed: `WEBVTT
+
+00:00:01 --> 00:00:03
+Missing milliseconds completely`,
     
     emptyCue: `WEBVTT
 

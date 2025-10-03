@@ -162,7 +162,13 @@ Hello world`;
       expect(result.errors.length).toBeGreaterThan(0);
       expect(result.errors[0].type).toBe('INVALID_TIMECODE');
     });
-
+    test('should detect malformed time format', () => {
+      const result = validateVttStructure(invalidCases.vtt.invalidTimeFormatMalformed);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0].type).toBe('INVALID_TIMECODE');
+    });
     test('should detect empty cues', () => {
       const result = validateVttStructure(invalidCases.vtt.emptyCue);
       

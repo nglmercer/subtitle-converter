@@ -170,6 +170,8 @@ function timeToMilliseconds(timeString: string): number {
 
   return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
 }
-
+export { parseAss, toAss, validateAssStructure };
+export { parseVtt, toVtt, validateVttStructure };
+export { parseSrt, toSrt, validateSrtStructure };
 // Re-export types for convenience
 export type { SubtitleCue, SubtitleAnalysis, ValidationResult, ValidationError, ValidationWarning, SubtitleFormat } from './types.js';
