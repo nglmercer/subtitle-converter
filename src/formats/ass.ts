@@ -35,10 +35,10 @@ export function parseAss(assContent: string): SubtitleCue[] {
       const dialogueMatch = trimmedLine.match(/^Dialogue:\s*(\d+),([^,]+),([^,]+),[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,([^,]*),(.*)$/);
       
       if (dialogueMatch) {
-        const layer = dialogueMatch[1];
+        //const layer = dialogueMatch[1];
         const startTime = convertAssTimeToStandard(dialogueMatch[2]!);
         const endTime = convertAssTimeToStandard(dialogueMatch[3]!);
-        const style = dialogueMatch[4]!;
+        //const style = dialogueMatch[4]!;
         const text = dialogueMatch[5]!;
         
         // Clean up ASS formatting tags and convert to plain text
@@ -88,7 +88,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   }
   
   assContent += cues
-    .map((cue, index) => {
+    .map((cue) => {
       const startTime = convertStandardTimeToAss(cue.startTime);
       const endTime = convertStandardTimeToAss(cue.endTime);
       const layer = '0';
@@ -358,11 +358,11 @@ function cleanAssText(assText: string): string {
  * @param timeString - Time string to validate
  * @returns true if valid, false otherwise
  */
-function isValidTimeFormat(timeString: string): boolean {
+/* function isValidTimeFormat(timeString: string): boolean {
   const match = timeString.match(/^(\d{2}):(\d{2}):(\d{2}),(\d{3})$/);
   return match !== null;
 }
-
+ */
 /**
  * Convert time string to milliseconds
  * @param timeString - Time in HH:MM:SS,mmm format
