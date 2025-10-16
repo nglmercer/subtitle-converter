@@ -1,182 +1,335 @@
 /**
  * Subconv-ts: A lightweight, dependency-free TypeScript library for converting subtitle files
+ *
+ * ARCHITECTURE:
+ * All conversions use a Universal JSON intermediate format to avoid N×N conversion implementations.
+ * This ensures:
+ * - Lossless conversions with metadata preservation
+ * - Easy addition of new formats (only need to implement to/from universal)
+ * - Consistent behavior across all format pairs
+ * - Ability to inspect and manipulate subtitles programmatically
  */
 
-import type { SubtitleCue, SubtitleAnalysis, ValidationResult, SubtitleFormat } from './types.js';
+import type {
+  SubtitleCue,
+  SubtitleAnalysis,
+  ValidationResult,
+  SubtitleFormat,
+  UniversalSubtitle,
+  ConversionOptions,
+} from "./types.js";
 
 // Format-specific imports
-import { parseSrt, toSrt, validateSrtStructure } from './formats/srt.js';
-import { parseVtt, toVtt, validateVttStructure } from './formats/vtt.js';
-import { parseAss, toAss, validateAssStructure } from './formats/ass.js';
-import { parseJson, toJson, validateJsonStructure } from './formats/json.js';
+import { parseSrt, toSrt, validateSrtStructure } from "./formats/srt.js";
+import { parseVtt, toVtt, validateVttStructure } from "./formats/vtt.js";
+import {
+  parseAss,
+  toAss,
+  validateAssStructure,
+  assToUniversal,
+  universalToAss,
+} from "./formats/ass.js";
+import { parseJson, toJson, validateJsonStructure } from "./formats/json.js";
+
+// Universal format utilities
+import {
+  toUniversal as cuesToUniversal,
+  fromUniversal as universalToCues,
+  universalToJson,
+  jsonToUniversal,
+  universalToLegacyJson,
+  timeStringToMs,
+  msToTimeString,
+  createDefaultStyle,
+  mergeMetadata,
+  validateUniversal,
+  getUniversalStats,
+  cloneUniversal,
+} from "./formats/universal.js";
 
 // Format detection
-import { detectFormat, detectFormatSimple, detectFormatWithConfidence } from './utils/formatDetector.js';
-import type { FormatDetectionResult } from './utils/formatDetector.js';
+import {
+  detectFormat,
+  detectFormatSimple,
+  detectFormatWithConfidence,
+} from "./utils/formatDetector.js";
+import type { FormatDetectionResult } from "./utils/formatDetector.js";
 
 /**
- * Convert subtitles between different formats
+ * Convert subtitles between different formats using Universal JSON intermediate
+ *
  * @param content - Subtitle content as string
  * @param fromFormat - Source format ('srt', 'vtt', 'ass', 'json', or 'auto' for automatic detection)
  * @param toFormat - Target format ('srt', 'vtt', 'ass', or 'json')
+ * @param options - Optional conversion settings
  * @returns Converted subtitle content
+ *
+ * @example
+ * ```typescript
+ * // Convert SRT to VTT
+ * const vttContent = convert(srtContent, 'srt', 'vtt');
+ *
+ * // Auto-detect format and convert
+ * const assContent = convert(unknownContent, 'auto', 'ass');
+ *
+ * // Convert with options
+ * const result = convert(content, 'ass', 'srt', { plainTextOnly: true });
+ * ```
  */
 export function convert(
-  content: string, 
-  fromFormat: SubtitleFormat | 'auto', 
-  toFormat: SubtitleFormat
+  content: string,
+  fromFormat: SubtitleFormat | "auto",
+  toFormat: SubtitleFormat,
+  options?: ConversionOptions,
 ): string {
-  // Auto-detect format if requested
+  // Step 1: Auto-detect format if requested
   let actualFromFormat: SubtitleFormat;
-  
-  if (fromFormat === 'auto') {
+
+  if (fromFormat === "auto") {
     const detected = detectFormatSimple(content);
     if (!detected) {
-      throw new Error('Unable to automatically detect subtitle format');
+      throw new Error("Unable to automatically detect subtitle format");
     }
     actualFromFormat = detected;
   } else {
     actualFromFormat = fromFormat;
   }
 
-  // Parse the input content
-  let cues: SubtitleCue[];
-  
-  switch (actualFromFormat) {
-    case 'srt':
-      cues = parseSrt(content);
-      break;
-    case 'vtt':
-      cues = parseVtt(content);
-      break;
-    case 'ass':
-      cues = parseAss(content);
-      break;
-    case 'json':
-      cues = parseJson(content);
-      break;
-    default:
-      throw new Error(`Unsupported input format: ${actualFromFormat}`);
-  }
+  // Step 2: Convert FROM source format TO Universal JSON
+  const universal = parseToUniversal(content, actualFromFormat);
 
-  // Convert to target format
-  switch (toFormat) {
-    case 'srt':
-      return toSrt(cues);
-    case 'vtt':
-      return toVtt(cues);
-    case 'ass':
-      return toAss(cues);
-    case 'json':
-      return toJson(cues);
-    default:
-      throw new Error(`Unsupported output format: ${toFormat}`);
-  }
+  // Step 3: Convert FROM Universal JSON TO target format
+  return formatFromUniversal(universal, toFormat, options);
 }
 
 /**
- * Analyze subtitle content and provide statistics
+ * Parse any subtitle format into Universal JSON format
+ *
  * @param content - Subtitle content as string
- * @param format - Format of the subtitle content ('srt', 'vtt', 'ass', 'json', or 'auto')
- * @returns Analysis results
+ * @param format - Format of the subtitle content
+ * @returns UniversalSubtitle object
+ *
+ * @example
+ * ```typescript
+ * const universal = parseToUniversal(srtContent, 'srt');
+ * console.log(universal.cues.length); // Number of subtitle cues
+ * console.log(universal.metadata); // Metadata information
+ * ```
  */
-export function analyze(content: string, format: SubtitleFormat | 'auto' = 'auto'): SubtitleAnalysis {
-  // Auto-detect format if requested
+export function parseToUniversal(
+  content: string,
+  format: SubtitleFormat | "auto" = "auto",
+): UniversalSubtitle {
+  // Auto-detect if needed
   let actualFormat: SubtitleFormat;
-  
-  if (format === 'auto') {
+
+  if (format === "auto") {
     const detected = detectFormatSimple(content);
     if (!detected) {
-      throw new Error('Unable to automatically detect subtitle format');
+      throw new Error("Unable to automatically detect subtitle format");
     }
     actualFormat = detected;
   } else {
     actualFormat = format;
   }
 
+  // Parse format-specific content to basic cues
   let cues: SubtitleCue[];
-  
+
   switch (actualFormat) {
-    case 'srt':
+    case "srt":
       cues = parseSrt(content);
       break;
-    case 'vtt':
+    case "vtt":
       cues = parseVtt(content);
       break;
-    case 'ass':
-      cues = parseAss(content);
-      break;
-    case 'json':
-      cues = parseJson(content);
+    case "ass":
+      // Use assToUniversal for better metadata/style preservation
+      return assToUniversal(content);
+    case "json":
+      // Check if it's already in universal format
+      try {
+        return jsonToUniversal(content);
+      } catch {
+        // Fall back to legacy JSON parsing
+        cues = parseJson(content);
+      }
       break;
     default:
-      throw new Error(`Unsupported format: ${actualFormat}`);
+      throw new Error(`Unsupported input format: ${actualFormat}`);
   }
 
-  if (cues.length === 0) {
+  // Convert basic cues to universal format
+  return cuesToUniversal(cues, actualFormat);
+}
+
+/**
+ * Format Universal JSON into any subtitle format
+ *
+ * @param universal - UniversalSubtitle object
+ * @param format - Target format
+ * @param options - Optional conversion settings
+ * @returns Formatted subtitle content as string
+ *
+ * @example
+ * ```typescript
+ * const universal = parseToUniversal(content, 'srt');
+ * const vttContent = formatFromUniversal(universal, 'vtt');
+ * ```
+ */
+export function formatFromUniversal(
+  universal: UniversalSubtitle,
+  format: SubtitleFormat,
+  options?: ConversionOptions,
+): string {
+  // Convert universal to basic cues for target format
+  const cues = universalToCues(universal, format, options);
+
+  // Format using format-specific serializer
+  switch (format) {
+    case "srt":
+      return toSrt(cues);
+    case "vtt":
+      return toVtt(cues);
+    case "ass":
+      return toAss(cues);
+    case "json":
+      // Support both universal and legacy JSON formats
+      if (options?.formatSpecific?.["useLegacyJson"]) {
+        return JSON.stringify(universalToLegacyJson(universal), null, 2);
+      }
+      return universalToJson(universal, true);
+    default:
+      throw new Error(`Unsupported output format: ${format}`);
+  }
+}
+
+/**
+ * Analyze subtitle content and provide statistics
+ *
+ * @param content - Subtitle content as string
+ * @param format - Format of the subtitle content ('srt', 'vtt', 'ass', 'json', or 'auto')
+ * @returns Analysis results with detailed statistics
+ *
+ * @example
+ * ```typescript
+ * const analysis = analyze(srtContent, 'srt');
+ * console.log(`Total cues: ${analysis.totalCues}`);
+ * console.log(`Duration: ${analysis.totalDuration}ms`);
+ * ```
+ */
+export function analyze(
+  content: string,
+  format: SubtitleFormat | "auto" = "auto",
+): SubtitleAnalysis {
+  // Parse to universal format first
+  const universal = parseToUniversal(content, format);
+
+  if (universal.cues.length === 0) {
     return {
       totalCues: 0,
       totalDuration: 0,
-      startTime: '00:00:00.000',
-      endTime: '00:00:00.000',
+      startTime: "00:00:00.000",
+      endTime: "00:00:00.000",
       averageDuration: 0,
-      shortestCue: { startTime: '00:00:00.000', endTime: '00:00:00.000', text: '', duration: 0 },
-      longestCue: { startTime: '00:00:00.000', endTime: '00:00:00.000', text: '', duration: 0 },
+      shortestCue: {
+        startTime: "00:00:00.000",
+        endTime: "00:00:00.000",
+        text: "",
+        duration: 0,
+      },
+      longestCue: {
+        startTime: "00:00:00.000",
+        endTime: "00:00:00.000",
+        text: "",
+        duration: 0,
+      },
       totalLines: 0,
-      averageLinesPerCue: 0
+      averageLinesPerCue: 0,
     };
   }
 
-  // Calculate durations for each cue
-  const cueDurations = cues.map(cue => ({
-    ...cue,
-    duration: timeToMilliseconds(cue.endTime) - timeToMilliseconds(cue.startTime)
-  }));
-
   // Find shortest and longest cues
-  const shortestCue = cueDurations.reduce((min, cue) => cue.duration < min.duration ? cue : min);
-  const longestCue = cueDurations.reduce((max, cue) => cue.duration > max.duration ? cue : max);
+  const shortestCue = universal.cues.reduce((min, cue) =>
+    cue.duration < min.duration ? cue : min,
+  );
+  const longestCue = universal.cues.reduce((max, cue) =>
+    cue.duration > max.duration ? cue : max,
+  );
 
-  // Calculate basic statistics
-  const totalCues = cues.length;
-  const totalDuration = calculateTotalDuration(cues);
+  // Calculate statistics
+  const totalCues = universal.cues.length;
+  const totalDuration = universal.cues.reduce(
+    (sum, cue) => sum + cue.duration,
+    0,
+  );
   const averageDuration = totalDuration / totalCues;
-  const totalLines = cues.reduce((sum, cue) => sum + cue.text.split('\n').length, 0);
+  const totalLines = universal.cues.reduce(
+    (sum, cue) => sum + cue.text.split("\n").length,
+    0,
+  );
   const averageLinesPerCue = totalLines / totalCues;
+
+  const firstCue = universal.cues[0]!;
+  const lastCue = universal.cues[universal.cues.length - 1]!;
 
   return {
     totalCues,
     totalDuration,
-    startTime: cues[0]!.startTime,
-    endTime: cues[cues.length - 1]!.endTime,
+    startTime: msToTimeString(firstCue.startTime),
+    endTime: msToTimeString(lastCue.endTime),
     averageDuration,
-    shortestCue,
-    longestCue,
+    shortestCue: {
+      startTime: msToTimeString(shortestCue.startTime),
+      endTime: msToTimeString(shortestCue.endTime),
+      text: shortestCue.text,
+      duration: shortestCue.duration,
+    },
+    longestCue: {
+      startTime: msToTimeString(longestCue.startTime),
+      endTime: msToTimeString(longestCue.endTime),
+      text: longestCue.text,
+      duration: longestCue.duration,
+    },
     totalLines,
-    averageLinesPerCue
+    averageLinesPerCue,
   };
 }
 
 /**
- * Validate subtitle content (with automatic format detection)
+ * Validate subtitle content
+ *
  * @param content - Subtitle content as string
  * @param format - Format of the subtitle content ('srt', 'vtt', 'ass', 'json', or 'auto')
- * @returns Validation results
+ * @returns Validation results with errors and warnings
+ *
+ * @example
+ * ```typescript
+ * const result = validate(srtContent, 'srt');
+ * if (!result.isValid) {
+ *   console.error('Validation errors:', result.errors);
+ * }
+ * ```
  */
-export function validate(content: string, format: SubtitleFormat | 'auto' = 'auto'): ValidationResult {
+export function validate(
+  content: string,
+  format: SubtitleFormat | "auto" = "auto",
+): ValidationResult {
   // Auto-detect format if requested
   let actualFormat: SubtitleFormat;
-  
-  if (format === 'auto') {
+
+  if (format === "auto") {
     const detected = detectFormatSimple(content);
     if (!detected) {
       return {
         isValid: false,
-        errors: [{
-          type: 'INVALID_FORMAT',
-          message: 'Unable to automatically detect subtitle format'
-        }],
-        warnings: []
+        errors: [
+          {
+            type: "INVALID_FORMAT",
+            message: "Unable to automatically detect subtitle format",
+          },
+        ],
+        warnings: [],
       };
     }
     actualFormat = detected;
@@ -186,80 +339,108 @@ export function validate(content: string, format: SubtitleFormat | 'auto' = 'aut
 
   // First, validate that the detected/specified format matches the content
   const detectionResult = detectFormat(content);
-  
+
   if (detectionResult.format !== actualFormat) {
     return {
       isValid: false,
-      errors: [{
-        type: 'INVALID_FORMAT',
-        message: `Content appears to be ${detectionResult.format || 'unknown format'}, but ${actualFormat} format was specified/detected`
-      }],
-      warnings: []
+      errors: [
+        {
+          type: "INVALID_FORMAT",
+          message: `Content appears to be ${
+            detectionResult.format || "unknown format"
+          }, but ${actualFormat} format was specified/detected`,
+        },
+      ],
+      warnings: [],
     };
   }
 
-  // Now validate with the appropriate validator
+  // Validate with format-specific validator
   switch (actualFormat) {
-    case 'srt':
+    case "srt":
       return validateSrtStructure(content);
-    case 'vtt':
+    case "vtt":
       return validateVttStructure(content);
-    case 'ass':
+    case "ass":
       return validateAssStructure(content);
-    case 'json':
+    case "json":
+      // Try to validate as universal format first
+      try {
+        const universal = jsonToUniversal(content);
+        if (validateUniversal(universal)) {
+          return { isValid: true, errors: [], warnings: [] };
+        }
+      } catch {
+        // Fall back to legacy JSON validation
+      }
       return validateJsonStructure(content);
     default:
       throw new Error(`Unsupported format: ${actualFormat}`);
   }
 }
 
-/**
- * Helper function to calculate total duration of all cues
- * @param cues - Array of subtitle cues
- * @returns Total duration in milliseconds
- */
-function calculateTotalDuration(cues: SubtitleCue[]): number {
-  if (cues.length === 0) return 0;
-  
-  // Simple implementation: sum of all cue durations
-  return cues.reduce((total, cue) => {
-    const startMs = timeToMilliseconds(cue.startTime);
-    const endMs = timeToMilliseconds(cue.endTime);
-    return total + (endMs - startMs);
-  }, 0);
-}
+// ============================================================================
+// EXPORTS
+// ============================================================================
 
-/**
- * Convert time string to milliseconds (helper function)
- * @param timeString - Time in format HH:MM:SS,mmm (SRT) or HH:MM:SS.mmm (VTT)
- * @returns Time in milliseconds
- */
-function timeToMilliseconds(timeString: string): number {
-  // Handle both SRT (comma) and VTT (dot) formats
-  const normalizedTime = timeString.replace(',', '.');
-  const match = normalizedTime.match(/^(\d{2}):(\d{2}):(\d{2})\.(\d{3})$/);
-  
-  if (!match) {
-    throw new Error(`Invalid time format: ${timeString}`);
-  }
+// Main API functions are already exported above in their definitions
 
-  const hours = parseInt(match[1]!, 10);
-  const minutes = parseInt(match[2]!, 10);
-  const seconds = parseInt(match[3]!, 10);
-  const milliseconds = parseInt(match[4]!, 10);
-
-  return (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
-}
-
-// Export all format parsers and converters
-export { parseAss, toAss, validateAssStructure };
+// Format-specific parsers and converters (for backward compatibility)
+export {
+  parseAss,
+  toAss,
+  validateAssStructure,
+  assToUniversal,
+  universalToAss,
+};
 export { parseVtt, toVtt, validateVttStructure };
 export { parseSrt, toSrt, validateSrtStructure };
 export { parseJson, toJson, validateJsonStructure };
 
-// Export format detection utilities
+// Universal format utilities
+export {
+  cuesToUniversal as toUniversal,
+  universalToCues as fromUniversal,
+  universalToJson,
+  jsonToUniversal,
+  universalToLegacyJson,
+  timeStringToMs,
+  msToTimeString,
+  createDefaultStyle,
+  mergeMetadata,
+  validateUniversal,
+  getUniversalStats,
+  cloneUniversal,
+};
+
+// Format detection utilities
 export { detectFormat, detectFormatSimple, detectFormatWithConfidence };
 export type { FormatDetectionResult };
 
-// Re-export types for convenience
-export type { SubtitleCue, SubtitleAnalysis, ValidationResult, ValidationError, ValidationWarning, SubtitleFormat } from './types.js';
+// Type exports
+export type {
+  SubtitleCue,
+  SubtitleAnalysis,
+  ValidationResult,
+  ValidationError,
+  ValidationWarning,
+  SubtitleFormat,
+  UniversalSubtitle,
+  UniversalCue,
+  SubtitleMetadata,
+  StyleDefinition,
+  ConversionOptions,
+  CueLayout,
+  InlineFormatting,
+  VttRegion,
+} from "./types.js";
+
+// Export SubtitleEditor class
+export { SubtitleEditor } from "./SubtitleEditor.js";
+export type {
+  ChangeEvent,
+  ChangeType,
+  SearchOptions,
+  FragmentContext,
+  ValidationOptions,
+} from "./SubtitleEditor.js";

@@ -5,13 +5,44 @@ A lightweight, dependency-free TypeScript library for converting subtitle files 
 ## Features
 
 - 🔄 **Format Conversion**: Convert between SRT, VTT, ASS, and JSON formats
+- 🎯 **Universal JSON Architecture**: All conversions use a lossless intermediate format
 - 🔍 **Format Detection**: Automatic format detection with confidence scoring
 - 📊 **Subtitle Analysis**: Get detailed statistics about subtitle files
 - ✅ **Validation**: Validate subtitle structure and integrity
+- 💾 **Metadata Preservation**: Preserve styles, formatting, and format-specific properties
+- 🎨 **Programmatic Manipulation**: Modify subtitles with millisecond precision
+- 🔄 **Round-Trip Conversions**: Lossless conversions maintain all original information
 - 🎯 **TypeScript First**: Full TypeScript support with comprehensive type definitions
 - 📦 **Zero Dependencies**: No external dependencies for maximum compatibility
 - 🧪 **Well Tested**: Comprehensive test suite using Bun
 - ⚡ **Lightweight**: Minimal footprint, maximum performance
+
+## Universal JSON Architecture
+
+**subconv-ts** uses a **Universal JSON intermediate format** for all subtitle conversions. This means:
+
+- **One conversion path**: ANY FORMAT → Universal JSON → ANY FORMAT
+- **Lossless conversions**: All metadata, styles, and formatting are preserved
+- **Easy extensibility**: Adding new formats only requires implementing to/from Universal JSON
+- **Programmatic access**: Inspect and manipulate subtitles with full type safety
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────┐
+│  SRT, VTT, ASS, JSON  → Universal JSON      │
+│                                              │
+│  Universal JSON stores:                     │
+│  • Cues with millisecond precision          │
+│  • Metadata (title, language, author)       │
+│  • Styles and formatting                    │
+│  • Format-specific properties               │
+│                                              │
+│  Universal JSON → SRT, VTT, ASS, JSON       │
+└─────────────────────────────────────────────┘
+```
+
+📖 **[Read the full architecture documentation](ARCHITECTURE.md)**
 
 ## Supported Formats
 
@@ -43,11 +74,42 @@ yarn add subs-converter
 ```typescript
 import { convert } from 'subs-converter';
 
-// Convert SRT to VTT
+// Convert SRT to VTT (uses Universal JSON internally)
 const vttContent = convert(srtContent, 'srt', 'vtt');
 
 // Convert with automatic format detection
 const result = convert(subtitleContent, 'auto', 'json');
+
+// With conversion options
+const plainText = convert(content, 'ass', 'srt', {
+  plainTextOnly: true  // Strip all formatting
+});
+```
+
+### Working with Universal Format
+
+```typescript
+import { parseToUniversal, formatFromUniversal } from 'subs-converter';
+
+// Parse any format to Universal JSON
+const universal = parseToUniversal(srtContent, 'srt');
+
+// Inspect the universal format
+console.log('Total cues:', universal.cues.length);
+console.log('Metadata:', universal.metadata);
+console.log('First cue start:', universal.cues[0].startTime, 'ms');
+
+// Modify subtitles programmatically
+universal.cues.forEach(cue => {
+  // Shift all subtitles by 2 seconds
+  cue.startTime += 2000;
+  cue.endTime += 2000;
+});
+
+// Convert to any format
+const vttOutput = formatFromUniversal(universal, 'vtt');
+const assOutput = formatFromUniversal(universal, 'ass');
+const jsonOutput = formatFromUniversal(universal, 'json');
 ```
 
 ### Analyzing Subtitles
@@ -88,7 +150,7 @@ console.log(validation);
 
 ### Core Functions
 
-#### `convert(content, fromFormat, toFormat)`
+#### `convert(content, fromFormat, toFormat, options?)`
 
 Converts subtitle content between different formats.
 
@@ -96,6 +158,11 @@ Converts subtitle content between different formats.
 - `content` (string): The subtitle content to convert
 - `fromFormat` (string): Source format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`)
 - `toFormat` (string): Target format (`'srt'`, `'vtt'`, `'ass'`, or `'json'`)
+- `options` (ConversionOptions, optional): Conversion settings
+  - `plainTextOnly`: Strip all formatting
+  - `preserveStyles`: Preserve style definitions (if target supports it)
+  - `preserveFormatting`: Preserve inline formatting tags
+  - `includeMetadata`: Include metadata in output
 
 **Returns:** Converted subtitle content (string)
 
@@ -120,6 +187,78 @@ Validates subtitle content structure and integrity.
 - `format` (string, optional): Format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`). Defaults to `'auto'`
 
 **Returns:** [`ValidationResult`](#validationresult) object
+
+### Universal Format Functions
+
+#### `parseToUniversal(content, format?)`
+
+Parses any subtitle format into Universal JSON format.
+
+**Parameters:**
+- `content` (string): The subtitle content to parse
+- `format` (string, optional): Format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`). Defaults to `'auto'`
+
+**Returns:** `UniversalSubtitle` object
+
+#### `formatFromUniversal(universal, format, options?)`
+
+Formats Universal JSON into any subtitle format.
+
+**Parameters:**
+- `universal` (UniversalSubtitle): The universal subtitle object
+- `format` (string): Target format (`'srt'`, `'vtt'`, `'ass'`, or `'json'`)
+- `options` (ConversionOptions, optional): Conversion settings
+
+**Returns:** Formatted subtitle content (string)
+
+#### `universalToJson(universal, pretty?)`
+
+Converts Universal format to JSON string.
+
+**Parameters:**
+- `universal` (UniversalSubtitle): The universal subtitle object
+- `pretty` (boolean, optional): Pretty-print JSON. Defaults to `true`
+
+**Returns:** JSON string
+
+#### `jsonToUniversal(jsonContent)`
+
+Parses JSON string to Universal format.
+
+**Parameters:**
+- `jsonContent` (string): JSON content
+
+**Returns:** `UniversalSubtitle` object
+
+#### `getUniversalStats(universal)`
+
+Gets statistics from Universal format.
+
+**Parameters:**
+- `universal` (UniversalSubtitle): The universal subtitle object
+
+**Returns:** Statistics object with duration, character counts, etc.
+
+### Utility Functions
+
+#### `timeStringToMs(timeString)`
+
+Converts time string to milliseconds.
+
+**Parameters:**
+- `timeString` (string): Time in HH:MM:SS,mmm or HH:MM:SS.mmm format
+
+**Returns:** Time in milliseconds (number)
+
+#### `msToTimeString(ms, format?)`
+
+Converts milliseconds to time string.
+
+**Parameters:**
+- `ms` (number): Time in milliseconds
+- `format` (string, optional): Output format (`'srt'` or `'vtt'`). Defaults to `'srt'`
+
+**Returns:** Time string in HH:MM:SS,mmm (SRT) or HH:MM:SS.mmm (VTT) format
 
 ### Format Detection
 
@@ -154,7 +293,56 @@ import { parseJson, toJson, validateJsonStructure } from 'subs-converter';
 
 ## Type Definitions
 
-### SubtitleCue
+### UniversalSubtitle
+
+```typescript
+interface UniversalSubtitle {
+  version: string;                    // Format version (e.g., "1.0.0")
+  sourceFormat: SubtitleFormat;       // Original format
+  metadata: SubtitleMetadata;         // Global metadata
+  styles: StyleDefinition[];          // Style definitions
+  cues: UniversalCue[];              // Subtitle cues
+}
+```
+
+### UniversalCue
+
+```typescript
+interface UniversalCue {
+  index: number;                     // Sequence number
+  startTime: number;                 // Start time in milliseconds
+  endTime: number;                   // End time in milliseconds
+  duration: number;                  // Duration in milliseconds
+  text: string;                      // Plain text (no formatting)
+  content: string;                   // Formatted content with tags
+  style?: string;                    // Style reference
+  identifier?: string;               // Cue ID (for VTT)
+  layout?: CueLayout;                // Position/alignment
+  formatting?: InlineFormatting[];   // Inline formatting spans
+  formatSpecific?: {                 // Format-specific properties
+    ass?: { layer?: number; effect?: string; /* ... */ };
+    vtt?: { region?: string; vertical?: string; /* ... */ };
+  };
+}
+```
+
+### SubtitleMetadata
+
+```typescript
+interface SubtitleMetadata {
+  title?: string;
+  language?: string;
+  author?: string;
+  description?: string;
+  formatSpecific?: {
+    ass?: { scriptType?: string; playResX?: number; /* ... */ };
+    vtt?: { regions?: VttRegion[]; notes?: string[]; };
+    [format: string]: any;
+  };
+}
+```
+
+### SubtitleCue (Legacy)
 
 ```typescript
 interface SubtitleCue {
@@ -229,6 +417,61 @@ fs.writeFileSync('movie.json', jsonContent);
 fs.writeFileSync('movie.ass', assContent);
 ```
 
+### Using Universal Format for Manipulation
+
+```typescript
+import { parseToUniversal, formatFromUniversal } from 'subs-converter';
+
+const content = fs.readFileSync('movie.srt', 'utf8');
+
+// Parse to universal format
+const universal = parseToUniversal(content, 'srt');
+
+// Add metadata
+universal.metadata.title = 'My Movie - English Subtitles';
+universal.metadata.language = 'en';
+universal.metadata.author = 'Translation Team';
+
+// Shift all subtitles by 5 seconds
+universal.cues.forEach(cue => {
+  cue.startTime += 5000;  // milliseconds
+  cue.endTime += 5000;
+});
+
+// Filter out short subtitles
+universal.cues = universal.cues.filter(cue => cue.duration >= 1000);
+
+// Convert to multiple formats from same universal object
+fs.writeFileSync('movie-delayed.srt', formatFromUniversal(universal, 'srt'));
+fs.writeFileSync('movie-delayed.vtt', formatFromUniversal(universal, 'vtt'));
+fs.writeFileSync('movie-delayed.ass', formatFromUniversal(universal, 'ass'));
+```
+
+### Merging Subtitle Files
+
+```typescript
+import { parseToUniversal, formatFromUniversal, cloneUniversal } from 'subs-converter';
+
+// Parse multiple subtitle files
+const universal1 = parseToUniversal(fs.readFileSync('part1.srt', 'utf8'), 'srt');
+const universal2 = parseToUniversal(fs.readFileSync('part2.srt', 'utf8'), 'srt');
+
+// Merge cues
+const merged = cloneUniversal(universal1);
+merged.cues = [
+  ...universal1.cues,
+  ...universal2.cues
+].sort((a, b) => a.startTime - b.startTime);
+
+// Re-index cues
+merged.cues.forEach((cue, index) => {
+  cue.index = index + 1;
+});
+
+// Save merged file
+fs.writeFileSync('merged.srt', formatFromUniversal(merged, 'srt'));
+```
+
 ### Batch Processing
 
 ```typescript
@@ -294,13 +537,21 @@ src/
 │   ├── srt.ts       # SRT format support
 │   ├── vtt.ts       # WebVTT format support
 │   ├── ass.ts       # ASS format support
-│   └── json.ts      # JSON format support
+│   ├── json.ts      # JSON format support (legacy)
+│   └── universal.ts # Universal JSON format core
 ├── utils/           # Utility functions
 │   ├── formatDetector.ts  # Format detection logic
 │   └── time.ts      # Time parsing utilities
 ├── types.ts         # TypeScript type definitions
 └── index.ts         # Main entry point
 ```
+
+### Examples
+
+Check out the [examples directory](examples/) for comprehensive usage examples:
+
+- `convertSub.ts` - Basic format conversion examples
+- `universalFormat.ts` - Advanced Universal JSON format usage
 
 ## Browser Support
 
@@ -315,6 +566,16 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
+
+### v2.0.0 (Current)
+- **Universal JSON Architecture**: All conversions now use a lossless intermediate format
+- **Metadata Preservation**: Preserve styles, formatting, and format-specific properties
+- **Programmatic Manipulation**: New APIs for manipulating subtitles with millisecond precision
+- **Enhanced Type Definitions**: Complete TypeScript types for Universal format
+- **New Functions**: `parseToUniversal`, `formatFromUniversal`, `universalToJson`, `jsonToUniversal`
+- **Utility Functions**: `timeStringToMs`, `msToTimeString`, `getUniversalStats`, `cloneUniversal`
+- **Round-Trip Support**: Lossless conversions maintain all original information
+- **Improved Documentation**: Comprehensive architecture documentation
 
 ### v1.0.0
 - Initial release

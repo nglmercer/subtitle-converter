@@ -1,4 +1,13 @@
-import type { SubtitleCue, ValidationResult, ValidationError, ValidationWarning } from '../types.js';
+import type {
+  SubtitleCue,
+  ValidationResult,
+  ValidationError,
+  ValidationWarning,
+  UniversalSubtitle,
+  UniversalCue,
+  SubtitleMetadata,
+} from "../types.js";
+import { timeStringToMs, msToTimeString } from "./universal.js";
 
 /**
  * Parse SRT content and convert it to an array of SubtitleCue objects
@@ -10,7 +19,7 @@ export function parseSrt(srtContent: string): SubtitleCue[] {
   const blocks = srtContent.trim().split(/\n\n+/);
 
   for (const block of blocks) {
-    const lines = block.split('\n'); // Don't trim individual lines to preserve whitespace
+    const lines = block.split("\n"); // Don't trim individual lines to preserve whitespace
     if (lines.length < 2) continue;
 
     // First line should be the cue number (we'll validate but not use it)
@@ -20,21 +29,23 @@ export function parseSrt(srtContent: string): SubtitleCue[] {
     // Second line should be the time range
     const timeLine = lines[1]?.trim();
     if (!timeLine) continue;
-    
-    const timeMatch = timeLine.match(/^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})$/);
-    
+
+    const timeMatch = timeLine.match(
+      /^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})$/,
+    );
+
     if (!timeMatch) continue;
 
     const startTime = timeMatch[1]!;
     const endTime = timeMatch[2]!;
 
     // Remaining lines are the text content - preserve whitespace
-    const text = lines.slice(2).join('\n'); // Don't trim to preserve whitespace
+    const text = lines.slice(2).join("\n"); // Don't trim to preserve whitespace
 
     cues.push({
       startTime,
       endTime,
-      text
+      text,
     });
   }
 
@@ -53,7 +64,62 @@ export function toSrt(cues: SubtitleCue[]): string {
       const timeRange = `${cue.startTime} --> ${cue.endTime}`;
       return `${cueNumber}\n${timeRange}\n${cue.text}`;
     })
-    .join('\n\n');
+    .join("\n\n");
+}
+
+/**
+ * Parse SRT content to Universal format with metadata preservation
+ * @param srtContent - Complete SRT file content as string
+ * @returns UniversalSubtitle object
+ */
+export function srtToUniversal(srtContent: string): UniversalSubtitle {
+  const cues = parseSrt(srtContent);
+
+  const universalCues: UniversalCue[] = cues.map((cue, index) => {
+    const startTime = timeStringToMs(cue.startTime);
+    const endTime = timeStringToMs(cue.endTime);
+
+    return {
+      index: index + 1,
+      startTime,
+      endTime,
+      duration: endTime - startTime,
+      text: cue.text,
+      content: cue.text,
+    };
+  });
+
+  // SRT files don't have metadata or styles, so we use defaults
+  const metadata: SubtitleMetadata = {
+    formatSpecific: {
+      srt: {
+        // SRT-specific metadata can be added here if needed
+      },
+    },
+  };
+
+  return {
+    version: "1.0.0",
+    sourceFormat: "srt",
+    metadata,
+    styles: [],
+    cues: universalCues,
+  };
+}
+
+/**
+ * Convert Universal format to SRT
+ * @param universal - UniversalSubtitle object
+ * @returns SRT formatted string
+ */
+export function universalToSrt(universal: UniversalSubtitle): string {
+  const cues: SubtitleCue[] = universal.cues.map((cue) => ({
+    startTime: msToTimeString(cue.startTime, "srt"),
+    endTime: msToTimeString(cue.endTime, "srt"),
+    text: cue.text, // SRT doesn't support rich formatting, use plain text
+  }));
+
+  return toSrt(cues);
 }
 
 /**
@@ -70,14 +136,14 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
     if (!block) continue;
-    
-    const lines = block.trim().split('\n');
-    
+
+    const lines = block.trim().split("\n");
+
     if (lines.length < 2) {
       errors.push({
-        type: 'INVALID_FORMAT',
+        type: "INVALID_FORMAT",
         message: `Block ${i + 1} has insufficient lines`,
-        lineNumber: blocks.slice(0, i).join('\n\n').split('\n').length + 1
+        lineNumber: blocks.slice(0, i).join("\n\n").split("\n").length + 1,
       });
       continue;
     }
@@ -86,9 +152,9 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
     const cueNumber = lines[0]?.trim();
     if (!cueNumber || !/^\d+$/.test(cueNumber)) {
       errors.push({
-        type: 'MISSING_CUE_NUMBER',
+        type: "MISSING_CUE_NUMBER",
         message: `Invalid or missing cue number in block ${i + 1}`,
-        lineNumber: blocks.slice(0, i).join('\n\n').split('\n').length + 1
+        lineNumber: blocks.slice(0, i).join("\n\n").split("\n").length + 1,
       });
     }
 
@@ -96,20 +162,22 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
     const timeLine = lines[1]?.trim();
     if (!timeLine) {
       errors.push({
-        type: 'INVALID_TIMECODE',
+        type: "INVALID_TIMECODE",
         message: `Missing time line in block ${i + 1}`,
-        lineNumber: blocks.slice(0, i).join('\n\n').split('\n').length + 2
+        lineNumber: blocks.slice(0, i).join("\n\n").split("\n").length + 2,
       });
       continue;
     }
-    
-    const timeMatch = timeLine.match(/^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})$/);
-    
+
+    const timeMatch = timeLine.match(
+      /^(\d{2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2},\d{3})$/,
+    );
+
     if (!timeMatch) {
       errors.push({
-        type: 'INVALID_TIMECODE',
+        type: "INVALID_TIMECODE",
         message: `Invalid time format in block ${i + 1}`,
-        lineNumber: blocks.slice(0, i).join('\n\n').split('\n').length + 2
+        lineNumber: blocks.slice(0, i).join("\n\n").split("\n").length + 2,
       });
       continue;
     }
@@ -118,19 +186,19 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
     const endTime = timeMatch[2]!;
 
     // Validate text content
-    const text = lines.slice(2).join('\n').trim();
+    const text = lines.slice(2).join("\n").trim();
     if (!text) {
       errors.push({
-        type: 'EMPTY_CUE',
+        type: "EMPTY_CUE",
         message: `Empty cue text in block ${i + 1}`,
-        cueIndex: i
+        cueIndex: i,
       });
     }
 
     cues.push({
       startTime,
       endTime,
-      text
+      text,
     });
   }
 
@@ -139,15 +207,15 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
     const currentCue = cues[i];
     const nextCue = cues[i + 1];
     if (!currentCue || !nextCue) continue;
-    
+
     const currentEnd = timeToMilliseconds(currentCue.endTime);
     const nextStart = timeToMilliseconds(nextCue.startTime);
-    
+
     if (currentEnd > nextStart) {
       errors.push({
-        type: 'OVERLAPPING_CUES',
+        type: "OVERLAPPING_CUES",
         message: `Overlapping cues: cue ${i + 1} ends after cue ${i + 2} starts`,
-        cueIndex: i
+        cueIndex: i,
       });
     }
   }
@@ -155,7 +223,7 @@ export function validateSrtStructure(srtContent: string): ValidationResult {
   return {
     isValid: errors.length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
