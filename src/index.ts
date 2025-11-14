@@ -17,6 +17,8 @@ import type {
   SubtitleFormat,
   UniversalSubtitle,
   ConversionOptions,
+  RendererAdapter,
+  RenderOptions,
 } from "./types.js";
 
 // Format-specific imports
@@ -95,11 +97,10 @@ export function convert(
     actualFromFormat = fromFormat;
   }
 
-  // Step 2: Convert FROM source format TO Universal JSON
   const universal = parseToUniversal(content, actualFromFormat);
-
-  // Step 3: Convert FROM Universal JSON TO target format
-  return formatFromUniversal(universal, toFormat, options);
+  const universalJson = universalToJson(universal, false);
+  const normalizedUniversal = jsonToUniversal(universalJson);
+  return formatFromUniversal(normalizedUniversal, toFormat, options);
 }
 
 /**
@@ -202,6 +203,183 @@ export function formatFromUniversal(
     default:
       throw new Error(`Unsupported output format: ${format}`);
   }
+}
+
+export function renderWithAdapter(
+  universal: UniversalSubtitle,
+  adapter: RendererAdapter,
+  options?: RenderOptions,
+): string {
+  return adapter.render(universal, options);
+}
+
+export function renderHtml(
+  universal: UniversalSubtitle,
+  options?: RenderOptions,
+): string {
+  const usePlain = options?.usePlainText ?? true;
+  const processAss = options?.processAssOverrides ?? false;
+  const containerTag = options?.containerTag ?? "div";
+  const cueTag = options?.cueTag ?? "div";
+  const containerClass = options?.containerClass ?? "subconv-container";
+  const cueClass = options?.cueClass ?? "subconv-cue";
+  const timeFmt = options?.timeFormat ?? "ms";
+  const attrs = options?.dataAttributes ?? {};
+  const attrStr = Object.entries(attrs)
+    .map(([k, v]) => ` data-${k}="${String(v)}"`)
+    .join("");
+  const meta = options?.includeMetadata
+    ? ` data-format="${universal.sourceFormat}"`
+    : "";
+  const header = `<${containerTag} class="${containerClass}"${meta}${attrStr}>`;
+  const cuesHtml = universal.cues
+    .map((c) => {
+      const start = timeFmt === "ms" ? String(c.startTime) : msToTimeString(c.startTime, timeFmt === "vtt" ? "vtt" : "srt");
+      const end = timeFmt === "ms" ? String(c.endTime) : msToTimeString(c.endTime, timeFmt === "vtt" ? "vtt" : "srt");
+      let text = usePlain ? c.text : c.content;
+      let extraAttrs = "";
+      if (processAss && universal.sourceFormat === "ass" && !usePlain) {
+        const info = extractAssOverrides(text);
+        text = info.cleaned;
+        if (info.posX !== undefined) extraAttrs += ` data-pos-x="${info.posX}"`;
+        if (info.posY !== undefined) extraAttrs += ` data-pos-y="${info.posY}"`;
+        if (info.color) extraAttrs += ` data-override-color="${escapeHtml(info.color)}"`;
+      }
+      const styleName = c.style ? ` data-style="${c.style}"` : "";
+      return `<${cueTag} class="${cueClass}" data-index="${c.index}" data-start="${start}" data-end="${end}"${styleName}${extraAttrs}><span class="subconv-text">${escapeHtml(text)}</span></${cueTag}>`;
+    })
+    .join("");
+  const footer = `</${containerTag}>`;
+  return header + cuesHtml + footer;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function renderJson(
+  universal: UniversalSubtitle,
+  options?: RenderOptions,
+): string {
+  const target = options?.target ?? "raw";
+  const compact = options?.compact ?? true;
+  const styles = mapStyles(universal.styles, target);
+  if (compact) {
+    const payload: any = {
+      v: universal.version,
+      f: universal.sourceFormat,
+      s: styles,
+      c: universal.cues.map((c) => ({ i: c.index, s: c.startTime, e: c.endTime, t: (options?.usePlainText ?? true) ? c.text : c.content, st: c.style })),
+    };
+    return JSON.stringify(payload);
+  }
+  const payload: any = {
+    version: universal.version,
+    format: universal.sourceFormat,
+    styles,
+    cues: universal.cues.map((c) => ({ index: c.index, startTime: c.startTime, endTime: c.endTime, duration: c.duration, text: (options?.usePlainText ?? true) ? c.text : c.content, style: c.style })),
+    metadata: options?.includeMetadata ? universal.metadata : undefined,
+  };
+  return JSON.stringify(payload);
+}
+
+function mapStyles(styles: any[], target: string): any {
+  const out: any = {};
+  for (const s of styles) {
+    const name = s.name || "Default";
+    if (target === "raw") {
+      out[name] = s;
+    } else if (target === "browser") {
+      out[name] = {
+        fontFamily: s.fontName,
+        fontSize: s.fontSize ? `${s.fontSize}px` : undefined,
+        color: s.primaryColor ? toCssColor(s.primaryColor) : undefined,
+        outlineColor: s.outlineColor ? toCssColor(s.outlineColor) : undefined,
+        backgroundColor: s.backColor ? toCssColor(s.backColor) : undefined,
+        fontWeight: s.bold ? "700" : "400",
+        fontStyle: s.italic ? "italic" : "normal",
+        textDecoration: s.underline ? "underline" : undefined,
+        letterSpacing: s.spacing !== undefined ? `${s.spacing}px` : undefined,
+        textShadow: s.shadow !== undefined ? `${s.shadow}px ${s.shadow}px ${s.shadow}px ${s.outlineColor ? toCssColor(s.outlineColor) : "#000"}` : undefined,
+        textAlign: s.alignment === 1 ? "left" : s.alignment === 2 ? "center" : s.alignment === 3 ? "right" : s.alignment === 4 ? "left" : s.alignment === 5 ? "center" : s.alignment === 6 ? "right" : s.alignment === 7 ? "left" : s.alignment === 8 ? "center" : s.alignment === 9 ? "right" : undefined,
+        marginTop: s.marginV !== undefined ? `${s.marginV}px` : undefined,
+        marginLeft: s.marginL !== undefined ? `${s.marginL}px` : undefined,
+        marginRight: s.marginR !== undefined ? `${s.marginR}px` : undefined,
+        alignment: s.alignment,
+      };
+    } else if (target === "slint") {
+      out[name] = {
+        font_name: s.fontName,
+        font_size: s.fontSize,
+        color: s.primaryColor ? toCssColor(s.primaryColor) : undefined,
+        outline_color: s.outlineColor ? toCssColor(s.outlineColor) : undefined,
+        back_color: s.backColor ? toCssColor(s.backColor) : undefined,
+        bold: !!s.bold,
+        italic: !!s.italic,
+        underline: !!s.underline,
+        spacing: s.spacing,
+        shadow: s.shadow,
+        alignment: s.alignment,
+      };
+    }
+  }
+  return out;
+}
+
+function toCssColor(color: string): string {
+  if (!color) return "";
+  if (color.startsWith("#")) return color;
+  const m = color.match(/^&H([0-9A-Fa-f]{8})$/);
+  if (m) {
+    const hex = m[1]!;
+    const aa = parseInt(hex.slice(0, 2), 16);
+    const bb = parseInt(hex.slice(2, 4), 16);
+    const gg = parseInt(hex.slice(4, 6), 16);
+    const rr = parseInt(hex.slice(6, 8), 16);
+    const a = 1 - aa / 255;
+    return `rgba(${rr},${gg},${bb},${a.toFixed(3)})`;
+  }
+  const m6 = color.match(/^&H([0-9A-Fa-f]{6})$/);
+  if (m6) {
+    const hex = m6[1]!;
+    const bb = parseInt(hex.slice(0, 2), 16);
+    const gg = parseInt(hex.slice(2, 4), 16);
+    const rr = parseInt(hex.slice(4, 6), 16);
+    return `rgb(${rr},${gg},${bb})`;
+  }
+  return color;
+}
+
+function extractAssOverrides(s: string): { posX?: number; posY?: number; color?: string; cleaned: string } {
+  let posX: number | undefined;
+  let posY: number | undefined;
+  let color: string | undefined;
+  const mPos = s.match(/\{[^}]*pos\((\d+),(\d+)\)[^}]*\}/) || s.match(/pos\((\d+),(\d+)\)/);
+  if (mPos) {
+    posX = parseInt(mPos[1]!, 10);
+    posY = parseInt(mPos[2]!, 10);
+  }
+  const mColor = s.match(/\{[^}]*c&H([0-9A-Fa-f]{6,8})&[^}]*\}/) || s.match(/\\?c&H([0-9A-Fa-f]{6,8})&/);
+  if (mColor) {
+    color = `&H${mColor[1]!}`;
+  }
+  let cleaned = s.replace(/\{\\?pos\([^}]+\)\}/g, "").replace(/\\?pos\([^)]*\)/g, "");
+  cleaned = cleaned.replace(/\{\\c&H[0-9A-Fa-f]{6,8}&\}/g, "");
+  cleaned = cleaned.replace(/\{[^}]*\}/g, "");
+  cleaned = cleaned.replace(/\\N/g, String.fromCharCode(10));
+  cleaned = cleaned.replace(/\\n/g, " ");
+  cleaned = cleaned.replace(/\\h/g, " ");
+  cleaned = cleaned.trim();
+  const out: { posX?: number; posY?: number; color?: string; cleaned: string } = { cleaned };
+  if (posX !== undefined) out.posX = posX;
+  if (posY !== undefined) out.posY = posY;
+  if (color !== undefined) out.color = color;
+  return out;
 }
 
 /**
@@ -430,6 +608,8 @@ export type {
   SubtitleMetadata,
   StyleDefinition,
   ConversionOptions,
+  RendererAdapter,
+  RenderOptions,
   CueLayout,
   InlineFormatting,
   VttRegion,

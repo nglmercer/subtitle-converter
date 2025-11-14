@@ -502,3 +502,21 @@ export interface ConversionOptions {
     [format: string]: any;
   };
 }
+
+export interface RenderOptions {
+  usePlainText?: boolean;
+  containerTag?: string;
+  cueTag?: string;
+  containerClass?: string;
+  cueClass?: string;
+  includeMetadata?: boolean;
+  timeFormat?: "ms" | "srt" | "vtt";
+  dataAttributes?: { [key: string]: string | number | boolean };
+  target?: "raw" | "browser" | "slint";
+  compact?: boolean;
+  processAssOverrides?: boolean;
+}
+
+export interface RendererAdapter {
+  render(universal: UniversalSubtitle, options?: RenderOptions): string;
+}
