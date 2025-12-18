@@ -41,13 +41,13 @@ describe("ASS Round-Trip with Multi-Character Example", () => {
       expect(universal.metadata.formatSpecific?.ass).toBeDefined();
 
       const assMetadata = universal.metadata.formatSpecific!.ass;
-      expect(assMetadata.scriptType).toBe("v4.00+");
-      expect(assMetadata.playResX).toBe(1920);
-      expect(assMetadata.playResY).toBe(1080);
-      expect(assMetadata.scaledBorderAndShadow).toBe("yes");
-      expect(assMetadata.yCbCrMatrix).toBe("TV.709");
-      expect(assMetadata.collisions).toBe("Normal");
-      expect(assMetadata.wrapStyle).toBe("0");
+      expect(assMetadata?.scriptType).toBe("v4.00+");
+      expect(assMetadata?.playResX).toBe(1920);
+      expect(assMetadata?.playResY).toBe(1080);
+      expect(assMetadata?.scaledBorderAndShadow).toBe("yes");
+      expect(assMetadata?.yCbCrMatrix).toBe("TV.709");
+      expect(assMetadata?.collisions).toBe("Normal");
+      expect(assMetadata?.wrapStyle).toBe("0");
     });
 
     test("should parse all 7 style definitions", () => {
