@@ -13,13 +13,13 @@ import {
   createDefaultStyle,
   mergeMetadata,
   validateUniversal,
-} from "../src/index.js";
+} from "../../src/index.js";
 import type {
   UniversalSubtitle,
   UniversalCue,
   SubtitleCue,
   SubtitleMetadata,
-} from "../src/types.js";
+} from "../../src/types.js";
 import {
   commonCues,
   multilineCues,
@@ -27,7 +27,7 @@ import {
   SrtBuilder,
   VttBuilder,
   AssBuilder,
-} from "./fixtures/test-fixtures.js";
+} from "../fixtures/test-fixtures.js";
 
 describe("Universal Format", () => {
   const srtBuilder = new SrtBuilder();

@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { parseVtt, toVtt, validateVttStructure } from '../src/formats/vtt.js';
+import { parseVtt, toVtt, validateVttStructure } from '../../src/formats/vtt.js';
 import { 
   VttBuilder, 
   commonCues, 
   multilineCues, 
   overlappingCues,
   invalidCases 
-} from './fixtures/test-fixtures.js';
+} from '../fixtures/test-fixtures.js';
 
 describe('VTT Format', () => {
   const builder = new VttBuilder();

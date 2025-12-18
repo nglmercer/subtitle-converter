@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { assToUniversal } from '../src/formats/ass.ts'
+import { assToUniversal } from '../../src/formats/ass.ts'
 
 const ass = `[Script Info]
 Title: Demo Parsing

@@ -58,4 +58,5 @@ temp/
 *.ass
 *.vtt
 *.srt
+*.csv
 examples/*.json

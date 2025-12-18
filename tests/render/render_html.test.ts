@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { parseToUniversal, renderHtml } from '../src/index.ts'
+import { parseToUniversal, renderHtml } from '../../src/index.ts'
 
 const vtt = `WEBVTT
 

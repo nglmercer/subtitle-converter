@@ -6,8 +6,8 @@ import {
   universalToAss,
   parseAss,
   validateAssStructure,
-} from "../src/formats/ass.js";
-import type { UniversalSubtitle } from "../src/types.js";
+} from "../../src/formats/ass.js";
+import type { UniversalSubtitle } from "../../src/types.js";
 
 describe("ASS Round-Trip with Multi-Character Example", () => {
   let multiCharAssContent: string;

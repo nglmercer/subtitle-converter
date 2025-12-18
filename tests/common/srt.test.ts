@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { parseSrt, toSrt, validateSrtStructure } from '../src/formats/srt.js';
+import { parseSrt, toSrt, validateSrtStructure } from '../../src/formats/srt.js';
 import { 
   SrtBuilder, 
   commonCues, 
   multilineCues, 
   overlappingCues,
   invalidCases 
-} from './fixtures/test-fixtures.js';
+} from '../fixtures/test-fixtures.js';
 
 describe('SRT Format', () => {
   const builder = new SrtBuilder();

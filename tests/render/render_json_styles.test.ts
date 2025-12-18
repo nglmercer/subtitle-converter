@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test'
-import { assToUniversal } from '../src/formats/ass.ts'
-import { renderJson } from '../src/index.ts'
+import { assToUniversal } from '../../src/formats/ass.ts'
+import { renderJson } from '../../src/index.ts'
 
 const ass = `[Script Info]
 Title: Demo
