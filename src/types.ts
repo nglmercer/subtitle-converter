@@ -469,7 +469,7 @@ export interface ValidationWarning {
 /**
  * Supported subtitle formats
  */
-export type SubtitleFormat = "srt" | "vtt" | "ass" | "json";
+export type SubtitleFormat = "srt" | "vtt" | "ass" | "json" | "csv";
 
 /**
  * Conversion options for format transformations

@@ -60,3 +60,4 @@ temp/
 *.srt
 *.csv
 examples/*.json
+output/*

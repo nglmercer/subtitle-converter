@@ -32,6 +32,7 @@ import {
   universalToAss,
 } from "./formats/ass.js";
 import { parseJson, toJson, validateJsonStructure } from "./formats/json.js";
+import { parseCsv, toCsv, validateCsvStructure } from "./formats/csv.js";
 
 // Universal format utilities
 import {
@@ -156,6 +157,8 @@ export function parseToUniversal(
         cues = parseJson(content);
       }
       break;
+    case "csv":
+      return parseCsv(content);
     default:
       throw new Error(`Unsupported input format: ${actualFormat}`);
   }
@@ -200,6 +203,8 @@ export function formatFromUniversal(
         return JSON.stringify(universalToLegacyJson(universal), null, 2);
       }
       return universalToJson(universal, true);
+    case "csv":
+      return toCsv(universal);
     default:
       throw new Error(`Unsupported output format: ${format}`);
   }
@@ -552,6 +557,8 @@ export function validate(
         // Fall back to legacy JSON validation
       }
       return validateJsonStructure(content);
+    case "csv":
+      return validateCsvStructure(content);
     default:
       throw new Error(`Unsupported format: ${actualFormat}`);
   }
@@ -574,6 +581,7 @@ export {
 export { parseVtt, toVtt, validateVttStructure };
 export { parseSrt, toSrt, validateSrtStructure };
 export { parseJson, toJson, validateJsonStructure };
+export { parseCsv, toCsv, validateCsvStructure };
 
 // Universal format utilities
 export {

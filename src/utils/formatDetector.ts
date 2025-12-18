@@ -39,6 +39,7 @@ export function detectFormat(content: string): FormatDetectionResult {
     detectJson,
     detectVtt,
     detectAss,
+    detectCsv,
     detectSrt
   ];
 
@@ -267,6 +268,37 @@ function detectSrt(content: string): FormatDetectionResult {
 
   return {
     format: confidence >= 0.5 ? 'srt' : null,
+    confidence: Math.min(confidence, 1),
+    reasons
+  };
+}
+
+/**
+ * Detect CSV format (specifically the bracket-timed version)
+ */
+function detectCsv(content: string): FormatDetectionResult {
+  const reasons: string[] = [];
+  let confidence = 0;
+  
+  // Look for the specific pattern [H:MM:SS.mmm],[H:MM:SS.mmm],
+  const csvTimePattern = /\[\d{1,2}:\d{2}:\d{2}\.\d{2,3}\],\[\d{1,2}:\d{2}:\d{2}\.\d{2,3}\],/;
+  
+  if (content.match(csvTimePattern)) {
+    reasons.push('Contains bracketed CSV time pattern');
+    confidence += 0.8;
+  }
+
+  // Count commas vs lines
+  const commaCount = (content.match(/,/g) || []).length;
+  const lineCount = (content.match(/\n/g) || []).length + 1;
+  
+  if (commaCount > lineCount * 2) {
+    reasons.push('High comma-to-line ratio suggesting CSV');
+    confidence += 0.1;
+  }
+
+  return {
+    format: confidence >= 0.6 ? 'csv' : null,
     confidence: Math.min(confidence, 1),
     reasons
   };

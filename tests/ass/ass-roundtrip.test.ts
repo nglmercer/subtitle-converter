@@ -16,7 +16,7 @@ describe("ASS Round-Trip with Multi-Character Example", () => {
   // Load the multi-character ASS example
   try {
     multiCharAssContent = readFileSync(
-      join(__dirname, "fixtures", "sample-ass-multichar.txt"),
+      join(__dirname, "..", "fixtures", "sample-ass-multichar.txt"),
       "utf-8",
     );
   } catch (error) {

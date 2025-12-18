@@ -10,6 +10,8 @@
   "scripts": {
     "test": "bun test",
     "build": "tsc",
+    "typecheck": "bun tsc --noEmit",
+    "extract-csv": "bun scripts/extract-csv.ts",
     "publish": "bun test && npm publish",
     "prepublishOnly": "bun run build"
   },
@@ -25,9 +27,13 @@
   "license": "MIT",
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/papaparse": "^5.5.2",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "papaparse": "^5.5.3"
   }
 }

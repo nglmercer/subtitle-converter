@@ -4,7 +4,7 @@ A lightweight, dependency-free TypeScript library for converting subtitle files 
 
 ## Features
 
-- 🔄 **Format Conversion**: Convert between SRT, VTT, ASS, and JSON formats
+- 🔄 **Format Conversion**: Convert between SRT, VTT, ASS, JSON, and CSV formats
 - 🎯 **Universal JSON Architecture**: All conversions use a lossless intermediate format
 - 🔍 **Format Detection**: Automatic format detection with confidence scoring
 - 📊 **Subtitle Analysis**: Get detailed statistics about subtitle files
@@ -46,12 +46,13 @@ A lightweight, dependency-free TypeScript library for converting subtitle files 
 
 ## Supported Formats
 
-| Format | Extension | Read | Write |
-|--------|-----------|------|-------|
-| SubRip | `.srt` | ✅ | ✅ |
-| WebVTT | `.vtt` | ✅ | ✅ |
-| Advanced SubStation | `.ass` | ✅ | ✅ |
-| JSON | `.json` | ✅ | ✅ |
+| Format               | Extension | Read | Write |
+| -------------------- | --------- | ---- | ----- |
+| SubRip               | `.srt`    | ✅   | ✅    |
+| WebVTT               | `.vtt`    | ✅   | ✅    |
+| Advanced SubStation  | `.ass`    | ✅   | ✅    |
+| JSON                 | `.json`   | ✅   | ✅    |
+| CSV (Timed Brackets) | `.csv`    | ✅   | ✅    |
 
 ## Installation
 
@@ -72,52 +73,52 @@ yarn add subs-converter
 ### Basic Conversion
 
 ```typescript
-import { convert } from 'subs-converter';
+import { convert } from "subs-converter";
 
 // Convert SRT to VTT (uses Universal JSON internally)
-const vttContent = convert(srtContent, 'srt', 'vtt');
+const vttContent = convert(srtContent, "srt", "vtt");
 
 // Convert with automatic format detection
-const result = convert(subtitleContent, 'auto', 'json');
+const result = convert(subtitleContent, "auto", "json");
 
 // With conversion options
-const plainText = convert(content, 'ass', 'srt', {
-  plainTextOnly: true  // Strip all formatting
+const plainText = convert(content, "ass", "srt", {
+  plainTextOnly: true, // Strip all formatting
 });
 ```
 
 ### Working with Universal Format
 
 ```typescript
-import { parseToUniversal, formatFromUniversal } from 'subs-converter';
+import { parseToUniversal, formatFromUniversal } from "subs-converter";
 
 // Parse any format to Universal JSON
-const universal = parseToUniversal(srtContent, 'srt');
+const universal = parseToUniversal(srtContent, "srt");
 
 // Inspect the universal format
-console.log('Total cues:', universal.cues.length);
-console.log('Metadata:', universal.metadata);
-console.log('First cue start:', universal.cues[0].startTime, 'ms');
+console.log("Total cues:", universal.cues.length);
+console.log("Metadata:", universal.metadata);
+console.log("First cue start:", universal.cues[0].startTime, "ms");
 
 // Modify subtitles programmatically
-universal.cues.forEach(cue => {
+universal.cues.forEach((cue) => {
   // Shift all subtitles by 2 seconds
   cue.startTime += 2000;
   cue.endTime += 2000;
 });
 
 // Convert to any format
-const vttOutput = formatFromUniversal(universal, 'vtt');
-const assOutput = formatFromUniversal(universal, 'ass');
-const jsonOutput = formatFromUniversal(universal, 'json');
+const vttOutput = formatFromUniversal(universal, "vtt");
+const assOutput = formatFromUniversal(universal, "ass");
+const jsonOutput = formatFromUniversal(universal, "json");
 ```
 
 ### Analyzing Subtitles
 
 ```typescript
-import { analyze } from 'subs-converter';
+import { analyze } from "subs-converter";
 
-const analysis = analyze(subtitleContent, 'srt');
+const analysis = analyze(subtitleContent, "srt");
 console.log(analysis);
 // {
 //   totalCues: 245,
@@ -135,9 +136,9 @@ console.log(analysis);
 ### Validating Subtitles
 
 ```typescript
-import { validate } from 'subs-converter';
+import { validate } from "subs-converter";
 
-const validation = validate(subtitleContent, 'vtt');
+const validation = validate(subtitleContent, "vtt");
 console.log(validation);
 // {
 //   isValid: true,
@@ -155,6 +156,7 @@ console.log(validation);
 Converts subtitle content between different formats.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to convert
 - `fromFormat` (string): Source format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`)
 - `toFormat` (string): Target format (`'srt'`, `'vtt'`, `'ass'`, or `'json'`)
@@ -173,6 +175,7 @@ Converts subtitle content between different formats.
 Analyzes subtitle content and provides detailed statistics.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to analyze
 - `format` (string, optional): Format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`). Defaults to `'auto'`
 
@@ -183,6 +186,7 @@ Analyzes subtitle content and provides detailed statistics.
 Validates subtitle content structure and integrity.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to validate
 - `format` (string, optional): Format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`). Defaults to `'auto'`
 
@@ -195,6 +199,7 @@ Validates subtitle content structure and integrity.
 Parses any subtitle format into Universal JSON format.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to parse
 - `format` (string, optional): Format (`'srt'`, `'vtt'`, `'ass'`, `'json'`, or `'auto'`). Defaults to `'auto'`
 
@@ -205,6 +210,7 @@ Parses any subtitle format into Universal JSON format.
 Formats Universal JSON into any subtitle format.
 
 **Parameters:**
+
 - `universal` (UniversalSubtitle): The universal subtitle object
 - `format` (string): Target format (`'srt'`, `'vtt'`, `'ass'`, or `'json'`)
 - `options` (ConversionOptions, optional): Conversion settings
@@ -216,6 +222,7 @@ Formats Universal JSON into any subtitle format.
 Converts Universal format to JSON string.
 
 **Parameters:**
+
 - `universal` (UniversalSubtitle): The universal subtitle object
 - `pretty` (boolean, optional): Pretty-print JSON. Defaults to `true`
 
@@ -226,6 +233,7 @@ Converts Universal format to JSON string.
 Parses JSON string to Universal format.
 
 **Parameters:**
+
 - `jsonContent` (string): JSON content
 
 **Returns:** `UniversalSubtitle` object
@@ -235,6 +243,7 @@ Parses JSON string to Universal format.
 Gets statistics from Universal format.
 
 **Parameters:**
+
 - `universal` (UniversalSubtitle): The universal subtitle object
 
 **Returns:** Statistics object with duration, character counts, etc.
@@ -246,6 +255,7 @@ Gets statistics from Universal format.
 Converts time string to milliseconds.
 
 **Parameters:**
+
 - `timeString` (string): Time in HH:MM:SS,mmm or HH:MM:SS.mmm format
 
 **Returns:** Time in milliseconds (number)
@@ -255,6 +265,7 @@ Converts time string to milliseconds.
 Converts milliseconds to time string.
 
 **Parameters:**
+
 - `ms` (number): Time in milliseconds
 - `format` (string, optional): Output format (`'srt'` or `'vtt'`). Defaults to `'srt'`
 
@@ -267,6 +278,7 @@ Converts milliseconds to time string.
 Simple format detection that returns the most likely format.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to analyze
 
 **Returns:** Format string or `null` if format cannot be detected
@@ -276,6 +288,7 @@ Simple format detection that returns the most likely format.
 Advanced format detection with confidence scoring.
 
 **Parameters:**
+
 - `content` (string): The subtitle content to analyze
 
 **Returns:** Object with `format` and `confidence` properties
@@ -285,10 +298,10 @@ Advanced format detection with confidence scoring.
 The library also exports format-specific functions for advanced use cases:
 
 ```typescript
-import { parseSrt, toSrt, validateSrtStructure } from 'subs-converter';
-import { parseVtt, toVtt, validateVttStructure } from 'subs-converter';
-import { parseAss, toAss, validateAssStructure } from 'subs-converter';
-import { parseJson, toJson, validateJsonStructure } from 'subs-converter';
+import { parseSrt, toSrt, validateSrtStructure } from "subs-converter";
+import { parseVtt, toVtt, validateVttStructure } from "subs-converter";
+import { parseAss, toAss, validateAssStructure } from "subs-converter";
+import { parseJson, toJson, validateJsonStructure } from "subs-converter";
 ```
 
 ## Type Definitions
@@ -297,11 +310,11 @@ import { parseJson, toJson, validateJsonStructure } from 'subs-converter';
 
 ```typescript
 interface UniversalSubtitle {
-  version: string;                    // Format version (e.g., "1.0.0")
-  sourceFormat: SubtitleFormat;       // Original format
-  metadata: SubtitleMetadata;         // Global metadata
-  styles: StyleDefinition[];          // Style definitions
-  cues: UniversalCue[];              // Subtitle cues
+  version: string; // Format version (e.g., "1.0.0")
+  sourceFormat: SubtitleFormat; // Original format
+  metadata: SubtitleMetadata; // Global metadata
+  styles: StyleDefinition[]; // Style definitions
+  cues: UniversalCue[]; // Subtitle cues
 }
 ```
 
@@ -309,19 +322,20 @@ interface UniversalSubtitle {
 
 ```typescript
 interface UniversalCue {
-  index: number;                     // Sequence number
-  startTime: number;                 // Start time in milliseconds
-  endTime: number;                   // End time in milliseconds
-  duration: number;                  // Duration in milliseconds
-  text: string;                      // Plain text (no formatting)
-  content: string;                   // Formatted content with tags
-  style?: string;                    // Style reference
-  identifier?: string;               // Cue ID (for VTT)
-  layout?: CueLayout;                // Position/alignment
-  formatting?: InlineFormatting[];   // Inline formatting spans
-  formatSpecific?: {                 // Format-specific properties
-    ass?: { layer?: number; effect?: string; /* ... */ };
-    vtt?: { region?: string; vertical?: string; /* ... */ };
+  index: number; // Sequence number
+  startTime: number; // Start time in milliseconds
+  endTime: number; // End time in milliseconds
+  duration: number; // Duration in milliseconds
+  text: string; // Plain text (no formatting)
+  content: string; // Formatted content with tags
+  style?: string; // Style reference
+  identifier?: string; // Cue ID (for VTT)
+  layout?: CueLayout; // Position/alignment
+  formatting?: InlineFormatting[]; // Inline formatting spans
+  formatSpecific?: {
+    // Format-specific properties
+    ass?: { layer?: number; effect?: string /* ... */ };
+    vtt?: { region?: string; vertical?: string /* ... */ };
   };
 }
 ```
@@ -335,8 +349,8 @@ interface SubtitleMetadata {
   author?: string;
   description?: string;
   formatSpecific?: {
-    ass?: { scriptType?: string; playResX?: number; /* ... */ };
-    vtt?: { regions?: VttRegion[]; notes?: string[]; };
+    ass?: { scriptType?: string; playResX?: number /* ... */ };
+    vtt?: { regions?: VttRegion[]; notes?: string[] };
     [format: string]: any;
   };
 }
@@ -346,9 +360,9 @@ interface SubtitleMetadata {
 
 ```typescript
 interface SubtitleCue {
-  startTime: string;  // HH:MM:SS.mmm format
-  endTime: string;    // HH:MM:SS.mmm format
-  text: string;       // Subtitle text (may contain newlines)
+  startTime: string; // HH:MM:SS.mmm format
+  endTime: string; // HH:MM:SS.mmm format
+  text: string; // Subtitle text (may contain newlines)
 }
 ```
 
@@ -378,14 +392,23 @@ interface ValidationResult {
 }
 
 interface ValidationError {
-  type: 'INVALID_FORMAT' | 'OVERLAPPING_CUES' | 'INVALID_TIMECODE' | 'MISSING_CUE_NUMBER' | 'EMPTY_CUE';
+  type:
+    | "INVALID_FORMAT"
+    | "OVERLAPPING_CUES"
+    | "INVALID_TIMECODE"
+    | "MISSING_CUE_NUMBER"
+    | "EMPTY_CUE";
   message: string;
   lineNumber?: number;
   cueIndex?: number;
 }
 
 interface ValidationWarning {
-  type: 'SHORT_DURATION' | 'LONG_DURATION' | 'GAP_BETWEEN_CUES' | 'EXCESSIVE_LINES';
+  type:
+    | "SHORT_DURATION"
+    | "LONG_DURATION"
+    | "GAP_BETWEEN_CUES"
+    | "EXCESSIVE_LINES";
   message: string;
   lineNumber?: number;
   cueIndex?: number;
@@ -397,71 +420,80 @@ interface ValidationWarning {
 ### Working with Different Formats
 
 ```typescript
-import { convert, detectFormatSimple } from 'subs-converter';
+import { convert, detectFormatSimple } from "subs-converter";
 
 // Read subtitle file
-const content = fs.readFileSync('movie.srt', 'utf8');
+const content = fs.readFileSync("movie.srt", "utf8");
 
 // Auto-detect format
 const format = detectFormatSimple(content);
 console.log(`Detected format: ${format}`); // "srt"
 
 // Convert to different formats
-const vttContent = convert(content, 'srt', 'vtt');
-const jsonContent = convert(content, 'srt', 'json');
-const assContent = convert(content, 'srt', 'ass');
+const vttContent = convert(content, "srt", "vtt");
+const jsonContent = convert(content, "srt", "json");
+const assContent = convert(content, "srt", "ass");
 
 // Save converted files
-fs.writeFileSync('movie.vtt', vttContent);
-fs.writeFileSync('movie.json', jsonContent);
-fs.writeFileSync('movie.ass', assContent);
+fs.writeFileSync("movie.vtt", vttContent);
+fs.writeFileSync("movie.json", jsonContent);
+fs.writeFileSync("movie.ass", assContent);
 ```
 
 ### Using Universal Format for Manipulation
 
 ```typescript
-import { parseToUniversal, formatFromUniversal } from 'subs-converter';
+import { parseToUniversal, formatFromUniversal } from "subs-converter";
 
-const content = fs.readFileSync('movie.srt', 'utf8');
+const content = fs.readFileSync("movie.srt", "utf8");
 
 // Parse to universal format
-const universal = parseToUniversal(content, 'srt');
+const universal = parseToUniversal(content, "srt");
 
 // Add metadata
-universal.metadata.title = 'My Movie - English Subtitles';
-universal.metadata.language = 'en';
-universal.metadata.author = 'Translation Team';
+universal.metadata.title = "My Movie - English Subtitles";
+universal.metadata.language = "en";
+universal.metadata.author = "Translation Team";
 
 // Shift all subtitles by 5 seconds
-universal.cues.forEach(cue => {
-  cue.startTime += 5000;  // milliseconds
+universal.cues.forEach((cue) => {
+  cue.startTime += 5000; // milliseconds
   cue.endTime += 5000;
 });
 
 // Filter out short subtitles
-universal.cues = universal.cues.filter(cue => cue.duration >= 1000);
+universal.cues = universal.cues.filter((cue) => cue.duration >= 1000);
 
 // Convert to multiple formats from same universal object
-fs.writeFileSync('movie-delayed.srt', formatFromUniversal(universal, 'srt'));
-fs.writeFileSync('movie-delayed.vtt', formatFromUniversal(universal, 'vtt'));
-fs.writeFileSync('movie-delayed.ass', formatFromUniversal(universal, 'ass'));
+fs.writeFileSync("movie-delayed.srt", formatFromUniversal(universal, "srt"));
+fs.writeFileSync("movie-delayed.vtt", formatFromUniversal(universal, "vtt"));
+fs.writeFileSync("movie-delayed.ass", formatFromUniversal(universal, "ass"));
 ```
 
 ### Merging Subtitle Files
 
 ```typescript
-import { parseToUniversal, formatFromUniversal, cloneUniversal } from 'subs-converter';
+import {
+  parseToUniversal,
+  formatFromUniversal,
+  cloneUniversal,
+} from "subs-converter";
 
 // Parse multiple subtitle files
-const universal1 = parseToUniversal(fs.readFileSync('part1.srt', 'utf8'), 'srt');
-const universal2 = parseToUniversal(fs.readFileSync('part2.srt', 'utf8'), 'srt');
+const universal1 = parseToUniversal(
+  fs.readFileSync("part1.srt", "utf8"),
+  "srt"
+);
+const universal2 = parseToUniversal(
+  fs.readFileSync("part2.srt", "utf8"),
+  "srt"
+);
 
 // Merge cues
 const merged = cloneUniversal(universal1);
-merged.cues = [
-  ...universal1.cues,
-  ...universal2.cues
-].sort((a, b) => a.startTime - b.startTime);
+merged.cues = [...universal1.cues, ...universal2.cues].sort(
+  (a, b) => a.startTime - b.startTime
+);
 
 // Re-index cues
 merged.cues.forEach((cue, index) => {
@@ -469,49 +501,48 @@ merged.cues.forEach((cue, index) => {
 });
 
 // Save merged file
-fs.writeFileSync('merged.srt', formatFromUniversal(merged, 'srt'));
+fs.writeFileSync("merged.srt", formatFromUniversal(merged, "srt"));
 ```
 
 ### Batch Processing
 
 ```typescript
-import { convert, analyze } from 'subs-converter';
+import { convert, analyze } from "subs-converter";
 
-const files = ['movie1.srt', 'movie2.vtt', 'movie3.ass'];
+const files = ["movie1.srt", "movie2.vtt", "movie3.ass"];
 
-files.forEach(file => {
-  const content = fs.readFileSync(file, 'utf8');
-  const analysis = analyze(content, 'auto');
-  
+files.forEach((file) => {
+  const content = fs.readFileSync(file, "utf8");
+  const analysis = analyze(content, "auto");
+
   console.log(`File: ${file}`);
   console.log(`Total cues: ${analysis.totalCues}`);
   console.log(`Duration: ${analysis.totalDuration / 1000}s`);
   console.log(`Average duration: ${analysis.averageDuration}ms`);
-  console.log('---');
+  console.log("---");
 });
 ```
 
 ### Error Handling
 
 ```typescript
-import { convert, validate } from 'subs-converter';
+import { convert, validate } from "subs-converter";
 
 try {
   // Validate first
-  const validation = validate(content, 'auto');
-  
+  const validation = validate(content, "auto");
+
   if (!validation.isValid) {
-    console.error('Validation errors:', validation.errors);
-    console.warn('Validation warnings:', validation.warnings);
+    console.error("Validation errors:", validation.errors);
+    console.warn("Validation warnings:", validation.warnings);
     return;
   }
-  
+
   // Then convert
-  const result = convert(content, 'auto', 'json');
-  console.log('Conversion successful!');
-  
+  const result = convert(content, "auto", "json");
+  console.log("Conversion successful!");
 } catch (error) {
-  console.error('Conversion failed:', error.message);
+  console.error("Conversion failed:", error.message);
 }
 ```
 
@@ -567,7 +598,14 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+
+- **CSV Format Support**: Added support for bracket-timed CSV files used in data extraction.
+- **Extraction Script**: New CLI tool to extract raw data from CSV files and convert to Universal JSON.
+- **Improved Parsing**: Enhanced format detection and robustness for messy CSV files.
+
+### v2.0.0
+
 - **Universal JSON Architecture**: All conversions now use a lossless intermediate format
 - **Metadata Preservation**: Preserve styles, formatting, and format-specific properties
 - **Programmatic Manipulation**: New APIs for manipulating subtitles with millisecond precision
@@ -578,6 +616,7 @@ MIT License - see the [LICENSE](LICENSE) file for details.
 - **Improved Documentation**: Comprehensive architecture documentation
 
 ### v1.0.0
+
 - Initial release
 - Support for SRT, VTT, ASS, and JSON formats
 - Format detection and conversion
