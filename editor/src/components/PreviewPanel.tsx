@@ -1,4 +1,5 @@
 import type { UniversalSubtitle, StyleDefinition } from 'subs-converter';
+import './PreviewPanel.css';
 
 interface Props {
   universal: UniversalSubtitle;

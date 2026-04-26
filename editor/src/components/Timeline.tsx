@@ -1,4 +1,5 @@
 import type { UniversalCue } from 'subs-converter';
+import './Timeline.css';
 
 interface Props {
   cues: UniversalCue[];

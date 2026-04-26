@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import type { UniversalCue } from 'subs-converter';
+import './CueEditor.css';
 
 interface Props {
   cue: UniversalCue;

@@ -1,4 +1,5 @@
 import type { SubtitleAnalysis } from 'subs-converter';
+import './AnalysisPanel.css';
 
 interface Props {
   analysis: SubtitleAnalysis;

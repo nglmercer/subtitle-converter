@@ -1,4 +1,5 @@
 import type { JSX } from 'preact';
+import './FileDrop.css';
 
 interface Props {
   onFile: (name: string, content: string) => void;
