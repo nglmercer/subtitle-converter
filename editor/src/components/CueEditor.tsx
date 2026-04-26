@@ -1,3 +1,4 @@
+import type { JSX } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import type { UniversalCue } from 'subs-converter';
 import './CueEditor.css';
@@ -76,7 +77,7 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
             id="cue-actor"
             class="cue-meta-input"
             value={actor}
-            onInput={(e: any) => setActor(e.currentTarget.value)}
+            onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setActor(e.currentTarget.value)}
           />
         </div>
         <div class="cue-meta-group">
@@ -85,7 +86,7 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
             id="cue-style"
             class="cue-meta-input"
             value={style}
-            onInput={(e: any) => setStyle(e.currentTarget.value)}
+            onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setStyle(e.currentTarget.value)}
           />
         </div>
       </div>
@@ -94,7 +95,7 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
       <textarea
         id="cue-text"
         value={text}
-        onInput={(e: any) => setText(e.currentTarget.value)}
+        onInput={(e: JSX.TargetedEvent<HTMLTextAreaElement>) => setText(e.currentTarget.value)}
       />
 
       <div class="cue-timing">
@@ -103,7 +104,7 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
           <input
             id="cue-start"
             value={startStr}
-            onInput={(e: any) => setStartStr(e.currentTarget.value)}
+            onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setStartStr(e.currentTarget.value)}
           />
         </div>
         <div class="cue-timing-group">
@@ -111,7 +112,7 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
           <input
             id="cue-end"
             value={endStr}
-            onInput={(e: any) => setEndStr(e.currentTarget.value)}
+            onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setEndStr(e.currentTarget.value)}
           />
         </div>
       </div>

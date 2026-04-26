@@ -84,7 +84,7 @@ export function assToUniversal(assContent: string): UniversalSubtitle {
   const lines = assContent.trim().split(/\r?\n/);
 
   // Storage for parsed data
-  const scriptInfo: Record<string, any> = {};
+  const scriptInfo: Record<string, string> = {};
   const styles: StyleDefinition[] = [];
   const cues: UniversalCue[] = [];
 
@@ -167,11 +167,11 @@ export function assToUniversal(assContent: string): UniversalSubtitle {
     metadata.formatSpecific!.ass!.playResY = parseInt(scriptInfo["PlayResY"]);
   }
   if (scriptInfo["ScaledBorderAndShadow"]) {
-    (metadata.formatSpecific!.ass as any)["scaledBorderAndShadow"] =
+    metadata.formatSpecific!.ass!["scaledBorderAndShadow"] =
       scriptInfo["ScaledBorderAndShadow"];
   }
   if (scriptInfo["YCbCr Matrix"]) {
-    (metadata.formatSpecific!.ass as any)["yCbCrMatrix"] =
+    metadata.formatSpecific!.ass!["yCbCrMatrix"] =
       scriptInfo["YCbCr Matrix"];
   }
   if (scriptInfo["Collisions"]) {

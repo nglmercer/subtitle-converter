@@ -1,3 +1,4 @@
+import type { JSX } from "preact";
 import { useState, useCallback, useEffect, useRef } from "preact/hooks";
 import type {
   UniversalSubtitle,
@@ -171,7 +172,7 @@ export function App() {
               <select
                 class="export-select"
                 value={exportFormat}
-                onChange={(e: any) => setExportFormat(e.currentTarget.value)}
+                onChange={(e: JSX.TargetedEvent<HTMLSelectElement>) => setExportFormat(e.currentTarget.value as SubtitleFormat)}
               >
                 <option value="srt">SRT</option>
                 <option value="vtt">VTT</option>
@@ -241,7 +242,7 @@ export function App() {
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
-                  onInput={(e: any) => setSearchQuery(e.currentTarget.value)}
+                  onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setSearchQuery(e.currentTarget.value)}
                 />
                 <span class="cue-count">{universal.cues.length}</span>
               </div>
@@ -251,7 +252,7 @@ export function App() {
                     <select
                       class="filter-select"
                       value={actorFilter}
-                      onChange={(e: any) => {
+                      onChange={(e: JSX.TargetedEvent<HTMLSelectElement>) => {
                         setActorFilter(e.currentTarget.value);
                         setSelectedIndex(-1);
                       }}
@@ -266,7 +267,7 @@ export function App() {
                     <select
                       class="filter-select"
                       value={styleFilter}
-                      onChange={(e: any) => {
+                      onChange={(e: JSX.TargetedEvent<HTMLSelectElement>) => {
                         setStyleFilter(e.currentTarget.value);
                         setSelectedIndex(-1);
                       }}
