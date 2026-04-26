@@ -68,6 +68,7 @@ export function ActorManager({ universal, onActorRename }: Props) {
       )}
 
       <Modal isOpen={modalActor !== null} onClose={() => setModalActor(null)} title={`Rename: ${modalActor || ''}`}>
+        <>
         <label for="am-rename-input" style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);display:block;margin-bottom:4px;">New name</label>
         <input
           id="am-rename-input"
@@ -82,7 +83,7 @@ export function ActorManager({ universal, onActorRename }: Props) {
           style="width:100%;padding:6px 10px;font-size:14px;"
         />
 
-        {cueSamples.length > 0 && (
+        {cueSamples.length > 0 ? (
           <div style="margin-top:8px;">
             <div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;">Affected cues ({actorMap.get(modalActor || '') || 0} total):</div>
             {cueSamples.map((c, i) => (
@@ -91,12 +92,13 @@ export function ActorManager({ universal, onActorRename }: Props) {
               </div>
             ))}
           </div>
-        )}
+        ) : null}
 
         <div style="display:flex;gap:8px;margin-top:12px;">
           <button class="btn btn-export" onClick={handleConfirmRename}>Rename</button>
           <button class="btn btn-secondary" onClick={() => setModalActor(null)}>Cancel</button>
         </div>
+        </>
       </Modal>
     </div>
   );

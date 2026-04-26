@@ -36,56 +36,183 @@
   gap: 6px;
 }
 
+/* ─── Style Card ─── */
+
 .se-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.se-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-tertiary);
+}
+
+.se-card-preview-area {
+  width: 40px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
-.se-card-header {
+.se-card-sample {
+  line-height: 1;
+  pointer-events: none;
+}
+
+.se-card-info {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg-tertiary);
+  flex-direction: column;
 }
 
 .se-card-name {
   font-size: 12px;
   font-weight: 600;
   color: var(--accent);
-  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.se-card-preview {
-  width: 28px;
-  text-align: center;
+.se-card-meta {
+  font-size: 10px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.se-card-badge {
+  font-size: 14px;
   line-height: 1;
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
-/* Modal fields */
-.se-row {
+/* ─── Modal Layout ─── */
+
+.se-modal-layout {
   display: flex;
+  gap: 16px;
+  min-height: 360px;
+}
+
+.se-modal-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.se-modal-preview {
+  width: 240px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.se-preview-header {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+}
+
+.se-preview-screen {
+  flex: 1;
+  background: #000;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 8px;
+  min-height: 180px;
+}
+
+.se-preview-text {
+  text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.se-preview-subtext {
+  font-size: 11px;
+  opacity: 0.5;
+  text-align: center;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* ─── Field Sections ─── */
+
+.se-field-section {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
+}
+
+.se-field-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.se-field-row {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-.se-row label {
-  font-size: 10px;
+/* ─── Individual Field ─── */
+
+.se-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 60px;
+}
+
+.se-field-label {
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   color: var(--text-secondary);
-  min-width: 50px;
 }
 
-.se-row input[type="text"],
-.se-row input[type="number"],
-.se-row select {
-  flex: 1;
-  min-width: 60px;
-  padding: 3px 6px;
+.se-field input[type="text"],
+.se-field input[type="number"],
+.se-field select {
+  padding: 4px 6px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-primary);
@@ -93,26 +220,35 @@
   font-size: 11px;
   font-family: var(--font-sans);
   outline: none;
+  width: 100%;
 }
 
-.se-row input:focus,
-.se-row select:focus {
+.se-field input:focus,
+.se-field select:focus {
   border-color: var(--accent);
 }
 
-.se-row input[type="checkbox"] {
+.se-field input[type="checkbox"] {
   accent-color: var(--accent);
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
-.se-color-group {
+/* ─── Color Picker Field ─── */
+
+.se-color-field {
+  min-width: 100px;
+}
+
+.se-color-picker-wrap {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
 }
 
-.se-color-group input[type="color"] {
+.se-color-picker-wrap input[type="color"] {
   width: 28px;
-  height: 22px;
+  height: 24px;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -120,8 +256,21 @@
   cursor: pointer;
 }
 
-.se-color-label {
-  font-size: 9px;
+.se-color-hex {
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--text-secondary);
-  white-space: nowrap;
+}
+
+/* ─── Actions ─── */
+
+.se-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* ─── Modal width override ─── */
+.modal-panel:has(.se-modal-layout) {
+  max-width: 640px;
 }

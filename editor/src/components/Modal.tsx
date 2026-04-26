@@ -5,7 +5,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: JSX.Element | JSX.Element[];
+  children: JSX.Element | JSX.Element[] | null | false | undefined;
 }
 
 export function Modal({ isOpen, onClose, title, children }: Props) {
