@@ -107,12 +107,22 @@ export function fromUniversal(
   options?: ConversionOptions,
 ): SubtitleCue[] {
   return universal.cues.map((cue) => {
-    let text = options?.plainTextOnly ? cue.text : cue.content;
+    let text: string;
 
-    // Apply format-specific text transformations if needed
-    if (targetFormat === "srt" && !options?.plainTextOnly) {
-      // SRT doesn't support rich formatting, use basic text
+    // Determine base text based on format support
+    if (targetFormat === "srt" || !options?.preserveFormatting) {
+      // SRT doesn't support rich formatting - always use plain text
+      // VTT defaults to plain unless preserveFormatting is set
       text = cue.text;
+    } else {
+      // Keep original content if preserving formatting
+      text = cue.content;
+    }
+
+    // Apply format-specific transformations
+    if (targetFormat === "vtt") {
+      // VTT: convert ASS \N line breaks to actual newlines
+      text = text.replace(/\\N/g, "\n");
     }
 
     return {
