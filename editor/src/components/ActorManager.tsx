@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { UniversalSubtitle } from 'subs-converter';
+import { Modal } from './Modal';
 import './ActorManager.css';
 
 interface Props {
@@ -14,7 +15,7 @@ interface ActorEntry {
 
 export function ActorManager({ universal, onActorRename }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const [editing, setEditing] = useState<string | null>(null);
+  const [modalActor, setModalActor] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
   const actorMap = new Map<string, number>();
@@ -33,19 +34,26 @@ export function ActorManager({ universal, onActorRename }: Props) {
 
   if (actors.length === 0) return null;
 
-  const handleStartRename = (name: string) => {
-    setEditing(name);
+  const handleOpenRename = (name: string) => {
+    setModalActor(name);
     setRenameValue(name);
   };
 
-  const handleConfirmRename = (oldName: string) => {
+  const handleConfirmRename = () => {
+    if (!modalActor) return;
     const trimmed = renameValue.trim();
-    if (trimmed && trimmed !== oldName) {
-      onActorRename(oldName, trimmed);
+    if (trimmed && trimmed !== modalActor) {
+      onActorRename(modalActor, trimmed);
     }
-    setEditing(null);
+    setModalActor(null);
     setRenameValue('');
   };
+
+  const cueSamples = modalActor
+    ? universal.cues
+        .filter((c) => c.formatSpecific?.ass?.actor === modalActor)
+        .slice(0, 5)
+    : [];
 
   return (
     <div class="actor-manager">
@@ -58,32 +66,49 @@ export function ActorManager({ universal, onActorRename }: Props) {
         <div class="am-body">
           {actors.map((actor) => (
             <div key={actor.name} class="am-row">
-              {editing === actor.name ? (
-                <div class="am-edit-group">
-                  <input
-                    class="am-edit-input"
-                    value={renameValue}
-                    onInput={(e: any) => setRenameValue(e.currentTarget.value)}
-                    onKeyDown={(e: KeyboardEvent) => {
-                      if (e.key === 'Enter') handleConfirmRename(actor.name);
-                      if (e.key === 'Escape') setEditing(null);
-                    }}
-                    autoFocus
-                  />
-                  <button class="am-btn am-btn-ok" onClick={() => handleConfirmRename(actor.name)}>✓</button>
-                  <button class="am-btn am-btn-cancel" onClick={() => setEditing(null)}>✕</button>
-                </div>
-              ) : (
-                <>
-                  <span class="am-name">{actor.name}</span>
-                  <span class="am-count">{actor.count}</span>
-                  <button class="am-btn am-btn-rename" onClick={() => handleStartRename(actor.name)}>Rename</button>
-                </>
-              )}
+              <span class="am-name">{actor.name}</span>
+              <span class="am-count">{actor.count}</span>
+              <button class="am-btn am-btn-rename" onClick={() => handleOpenRename(actor.name)}>Rename</button>
             </div>
           ))}
         </div>
       )}
+
+      <Modal
+        isOpen={modalActor !== null}
+        onClose={() => setModalActor(null)}
+        title={`Rename Actor: ${modalActor || ''}`}
+      >
+        <label for="am-rename-input" style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);display:block;margin-bottom:4px;">New name</label>
+        <input
+          id="am-rename-input"
+          class="am-edit-input"
+          value={renameValue}
+          onInput={(e: any) => setRenameValue(e.currentTarget.value)}
+          onKeyDown={(e: KeyboardEvent) => {
+            if (e.key === 'Enter') handleConfirmRename();
+            if (e.key === 'Escape') setModalActor(null);
+          }}
+          autoFocus
+          style="width:100%;padding:6px 10px;font-size:14px;"
+        />
+
+        {cueSamples.length > 0 && (
+          <div style="margin-top:8px;">
+            <div style="font-size:10px;color:var(--text-secondary);margin-bottom:4px;">Affected cues ({actorMap.get(modalActor || '') || 0} total):</div>
+            {cueSamples.map((c, i) => (
+              <div key={i} style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:3px;margin-bottom:3px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                {c.text.slice(0, 60)}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-export" onClick={handleConfirmRename}>Rename</button>
+          <button class="btn btn-secondary" onClick={() => setModalActor(null)}>Cancel</button>
+        </div>
+      </Modal>
     </div>
   );
 }

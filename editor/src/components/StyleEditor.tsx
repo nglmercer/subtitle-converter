@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
-import type { StyleDefinition, UniversalSubtitle } from 'subs-converter';
+import type { StyleDefinition } from 'subs-converter';
+import { Modal } from './Modal';
 import './StyleEditor.css';
 
 interface Props {
@@ -76,6 +77,13 @@ interface CardProps {
 
 function StyleCard({ style, isOpen, onToggle, onUpdate }: CardProps) {
   const [local, setLocal] = useState<Partial<StyleDefinition>>({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalLocal, setModalLocal] = useState<Partial<StyleDefinition>>({});
+
+  const openModal = () => {
+    setModalLocal({});
+    setShowModal(true);
+  };
 
   const value = <K extends keyof StyleDefinition>(key: K): StyleDefinition[K] =>
     key in local ? local[key] : style[key];
@@ -95,8 +103,8 @@ function StyleCard({ style, isOpen, onToggle, onUpdate }: CardProps) {
 
   return (
     <div class="se-card">
-      <div class="se-card-header" onClick={onToggle}>
-        <span class="se-card-name">{style.name}</span>
+      <div class="se-card-header">
+        <span class="se-card-name" onClick={onToggle}>{style.name}</span>
         <span class="se-card-preview" style={{
           fontFamily: value('fontName') || 'Arial',
           fontSize: `${Math.min(value('fontSize') || 20, 16)}px`,
@@ -106,7 +114,8 @@ function StyleCard({ style, isOpen, onToggle, onUpdate }: CardProps) {
         }}>
           Aa
         </span>
-        <span class="se-toggle">{isOpen ? '▲' : '▼'}</span>
+        <button class="btn btn-sm" onClick={(e) => { e.stopPropagation(); openModal(); }}>Edit</button>
+        <span class="se-toggle" onClick={onToggle}>{isOpen ? '▲' : '▼'}</span>
       </div>
 
       {isOpen && (
@@ -236,6 +245,113 @@ function StyleCard({ style, isOpen, onToggle, onUpdate }: CardProps) {
           </button>
         </div>
       )}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={`Edit Style: ${style.name}`}>
+        <StyleFields
+          style={{ ...style, ...modalLocal }}
+          onChange={(key, val) => setModalLocal((p) => ({ ...p, [key]: val }))}
+        />
+        <button
+          class="btn btn-export"
+          onClick={() => {
+            if (Object.keys(modalLocal).length > 0) {
+              onUpdate(modalLocal);
+              setModalLocal({});
+            }
+            setShowModal(false);
+          }}
+        >
+          Apply & Close
+        </button>
+      </Modal>
     </div>
+  );
+}
+
+function StyleFields({ style, onChange }: {
+  style: StyleDefinition;
+  onChange: <K extends keyof StyleDefinition>(key: K, value: StyleDefinition[K]) => void;
+}) {
+  return (
+    <>
+      <div class="se-row">
+        <label>Font</label>
+        <input
+          value={style.fontName || ''}
+          onInput={(e: any) => onChange('fontName', e.currentTarget.value)}
+        />
+        <label style="min-width:30px">Size</label>
+        <input
+          type="number"
+          style="width:70px"
+          value={style.fontSize || 20}
+          onInput={(e: any) => onChange('fontSize', parseInt(e.currentTarget.value, 10) || 20)}
+        />
+      </div>
+
+      <div class="se-row">
+        <label>Color</label>
+        <div class="se-color-group">
+          <input
+            type="color"
+            value={assColorToHex(style.primaryColor || '&H00FFFFFF')}
+            onInput={(e: any) => onChange('primaryColor', hexToAssColor(e.currentTarget.value))}
+          />
+          <span class="se-color-label">Text</span>
+        </div>
+        <div class="se-color-group">
+          <input
+            type="color"
+            value={assColorToHex(style.outlineColor || '&H00000000')}
+            onInput={(e: any) => onChange('outlineColor', hexToAssColor(e.currentTarget.value))}
+          />
+          <span class="se-color-label">Outline</span>
+        </div>
+        <div class="se-color-group">
+          <input
+            type="color"
+            value={assColorToHex(style.backColor || '&H00000000')}
+            onInput={(e: any) => onChange('backColor', hexToAssColor(e.currentTarget.value))}
+          />
+          <span class="se-color-label">Shadow</span>
+        </div>
+      </div>
+
+      <div class="se-row">
+        <label>Bold</label>
+        <input type="checkbox" checked={!!style.bold} onChange={(e: any) => onChange('bold', e.currentTarget.checked)} />
+        <label>Italic</label>
+        <input type="checkbox" checked={!!style.italic} onChange={(e: any) => onChange('italic', e.currentTarget.checked)} />
+        <label>Underline</label>
+        <input type="checkbox" checked={!!style.underline} onChange={(e: any) => onChange('underline', e.currentTarget.checked)} />
+      </div>
+
+      <div class="se-row">
+        <label>Outline</label>
+        <input type="number" min="0" step="0.5" style="width:70px" value={style.outline ?? 0} onInput={(e: any) => onChange('outline', parseFloat(e.currentTarget.value) || 0)} />
+        <label>Shadow</label>
+        <input type="number" min="0" step="0.5" style="width:70px" value={style.shadow ?? 0} onInput={(e: any) => onChange('shadow', parseFloat(e.currentTarget.value) || 0)} />
+        <label>Spacing</label>
+        <input type="number" step="0.5" style="width:70px" value={style.spacing ?? 0} onInput={(e: any) => onChange('spacing', parseFloat(e.currentTarget.value) || 0)} />
+      </div>
+
+      <div class="se-row">
+        <label>Alignment</label>
+        <select style="width:140px" value={style.alignment ?? 2} onChange={(e: any) => onChange('alignment', parseInt(e.currentTarget.value, 10))}>
+          {ALIGN_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <label>Border</label>
+        <input type="number" min="0" max="4" style="width:60px" value={style.borderStyle ?? 1} onInput={(e: any) => onChange('borderStyle', parseInt(e.currentTarget.value, 10) || 1)} />
+      </div>
+
+      <div class="se-row">
+        <label>Scale X</label>
+        <input type="number" min="10" max="200" style="width:70px" value={style.scaleX ?? 100} onInput={(e: any) => onChange('scaleX', parseFloat(e.currentTarget.value) || 100)} />
+        <label>Scale Y</label>
+        <input type="number" min="10" max="200" style="width:70px" value={style.scaleY ?? 100} onInput={(e: any) => onChange('scaleY', parseFloat(e.currentTarget.value) || 100)} />
+      </div>
+    </>
   );
 }
