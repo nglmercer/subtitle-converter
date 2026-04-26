@@ -25,39 +25,42 @@ function srtToMs(str: string): number {
     + parseInt(m[4], 10);
 }
 
-function extractStart(raw: string): string {
-  const m = raw.match(/(\d{2}:\d{2}:\d{2}[,.]\d{3})/);
-  return m?.[1] || '00:00:00,000';
-}
-
-function extractEnd(raw: string): string {
-  const parts = raw.split(/-->/);
-  if (parts.length < 2) return '00:00:00,000';
-  const m = parts[1].match(/(\d{2}:\d{2}:\d{2}[,.]\d{3})/);
-  return m?.[1] || '00:00:00,000';
-}
-
 export function CueEditor({ cue, index, onUpdate }: Props) {
   const [text, setText] = useState(cue.text);
   const [startStr, setStartStr] = useState(msToSrt(cue.startTime));
   const [endStr, setEndStr] = useState(msToSrt(cue.endTime));
+  const [actor, setActor] = useState(cue.formatSpecific?.ass?.actor || "");
+  const [style, setStyle] = useState(cue.style || "");
 
   useEffect(() => {
     setText(cue.text);
     setStartStr(msToSrt(cue.startTime));
     setEndStr(msToSrt(cue.endTime));
+    setActor(cue.formatSpecific?.ass?.actor || "");
+    setStyle(cue.style || "");
   }, [cue, index]);
 
   const handleApply = () => {
     const startMs = srtToMs(startStr);
     const endMs = srtToMs(endStr);
     if (startMs >= endMs) return;
-    onUpdate(index, {
+    const updates: Partial<UniversalCue> = {
       text,
       startTime: startMs,
       endTime: endMs,
       duration: endMs - startMs,
-    });
+      style,
+    };
+    if (actor) {
+      updates.formatSpecific = {
+        ...cue.formatSpecific,
+        ass: {
+          ...cue.formatSpecific?.ass,
+          actor,
+        },
+      };
+    }
+    onUpdate(index, updates);
   };
 
   const duration = Math.max(0, srtToMs(endStr) - srtToMs(startStr));
@@ -65,6 +68,27 @@ export function CueEditor({ cue, index, onUpdate }: Props) {
   return (
     <div class="cue-editor">
       <h3>Cue #{index + 1}</h3>
+
+      <div class="cue-meta-row">
+        <div class="cue-meta-group">
+          <label for="cue-actor">Actor / Name</label>
+          <input
+            id="cue-actor"
+            class="cue-meta-input"
+            value={actor}
+            onInput={(e: any) => setActor(e.currentTarget.value)}
+          />
+        </div>
+        <div class="cue-meta-group">
+          <label for="cue-style">Style</label>
+          <input
+            id="cue-style"
+            class="cue-meta-input"
+            value={style}
+            onInput={(e: any) => setStyle(e.currentTarget.value)}
+          />
+        </div>
+      </div>
 
       <label for="cue-text">Text</label>
       <textarea

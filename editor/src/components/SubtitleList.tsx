@@ -27,6 +27,8 @@ export function SubtitleList({ cues, selectedIndex, onSelect }: Props) {
       ) : (
         cues.map((cue, i) => {
           const actualIndex = cue.index - 1;
+          const actor = cue.formatSpecific?.ass?.actor || "";
+          const style = cue.style || "";
           return (
             <div
               key={cue.index}
@@ -35,6 +37,10 @@ export function SubtitleList({ cues, selectedIndex, onSelect }: Props) {
             >
               <div class="subtitle-item-meta">
                 <span class="subtitle-item-index">#{cue.index}</span>
+                {actor && <span class="subtitle-item-actor">{actor}</span>}
+                {style && style !== "Default" && (
+                  <span class="subtitle-item-style">{style}</span>
+                )}
                 <span class="subtitle-item-time">
                   {msToTimeStr(cue.startTime)} → {msToTimeStr(cue.endTime)}
                 </span>

@@ -47,6 +47,25 @@
   opacity: 0.7;
 }
 
+.subtitle-item-actor {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.12);
+  padding: 0 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.subtitle-item-style {
+  font-size: 10px;
+  color: var(--success);
+  background: rgba(63, 185, 80, 0.12);
+  padding: 0 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
 .subtitle-item-text {
   font-size: 13px;
   color: var(--text-primary);

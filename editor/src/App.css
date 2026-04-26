@@ -241,12 +241,38 @@ body,
 }
 
 .cue-count {
-    background: var(--bg-tertiary);
-    padding: 1px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    white-space: nowrap;
+  background: var(--bg-tertiary);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ─── Filter Row ─── */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.filter-select {
+  flex: 1;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  outline: none;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: var(--accent);
 }
 
 /* ─── Export Panel ─── */

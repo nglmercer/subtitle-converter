@@ -22,6 +22,32 @@
   margin-bottom: 4px;
 }
 
+.cue-meta-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cue-meta-group {
+  flex: 1;
+}
+
+.cue-meta-input {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  outline: none;
+}
+
+.cue-meta-input:focus {
+  border-color: var(--accent);
+}
+
 .cue-editor textarea {
   width: 100%;
   min-height: 80px;

@@ -23,6 +23,8 @@ export function App() {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [fileName, setFileName] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [actorFilter, setActorFilter] = useState<string>("");
+  const [styleFilter, setStyleFilter] = useState<string>("");
   const [detectedFormat, setDetectedFormat] = useState<string>("");
   const [analysis, setAnalysis] = useState<SubtitleAnalysis | null>(null);
   const [exportFormat, setExportFormat] = useState<SubtitleFormat>("srt");
@@ -39,6 +41,8 @@ export function App() {
     setUniversal(u);
     setSelectedIndex(u.cues.length > 0 ? 0 : -1);
     setSearchQuery("");
+    setActorFilter("");
+    setStyleFilter("");
     setExported("");
     const a = analyze(text, fmt);
     console.log(u, a);
@@ -120,15 +124,31 @@ export function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [universal, exported, searchQuery, handleExport]);
 
+  const actors = universal
+    ? [...new Set(
+        universal.cues
+          .map((c) => c.formatSpecific?.ass?.actor || "")
+          .filter(Boolean),
+      )].sort()
+    : [];
+
+  const styles = universal
+    ? [...new Set(universal.cues.map((c) => c.style || "").filter(Boolean))].sort()
+    : [];
+
   const selectedCue =
     universal && selectedIndex >= 0 ? universal.cues[selectedIndex] : null;
 
   const filteredCues = universal
-    ? searchQuery.trim()
-      ? universal.cues.filter((c) =>
-          c.text.toLowerCase().includes(searchQuery.toLowerCase()),
-        )
-      : universal.cues
+    ? universal.cues.filter((c) => {
+        const matchesText = !searchQuery.trim() ||
+          c.text.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesActor = !actorFilter ||
+          (c.formatSpecific?.ass?.actor || "") === actorFilter;
+        const matchesStyle = !styleFilter ||
+          (c.style || "") === styleFilter;
+        return matchesText && matchesActor && matchesStyle;
+      })
     : [];
 
   const totalMs = universal
@@ -225,6 +245,40 @@ export function App() {
                 />
                 <span class="cue-count">{universal.cues.length}</span>
               </div>
+              {(actors.length > 0 || styles.length > 0) && (
+                <div class="filter-row">
+                  {actors.length > 0 && (
+                    <select
+                      class="filter-select"
+                      value={actorFilter}
+                      onChange={(e: any) => {
+                        setActorFilter(e.currentTarget.value);
+                        setSelectedIndex(-1);
+                      }}
+                    >
+                      <option value="">All actors</option>
+                      {actors.map((a) => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  )}
+                  {styles.length > 0 && (
+                    <select
+                      class="filter-select"
+                      value={styleFilter}
+                      onChange={(e: any) => {
+                        setStyleFilter(e.currentTarget.value);
+                        setSelectedIndex(-1);
+                      }}
+                    >
+                      <option value="">All styles</option>
+                      {styles.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
               <SubtitleList
                 cues={filteredCues}
                 selectedIndex={selectedIndex}
