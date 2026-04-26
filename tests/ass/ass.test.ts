@@ -146,13 +146,13 @@ Dialogue: 0,0:00:01.00,0:00:03.00,Default,,0,0,0,,{\\i1}Italic text{\\i0}\\N{\\b
       expect(result.errors.some(e => e.message.includes('[Events]'))).toBe(true);
     });
 
-    test('should detect overlapping cues', () => {
+    test('should warn about overlapping cues (ASS overlaps are intentional)', () => {
       const assContent = builder.reset().addCues(overlappingCues).build();
       const result = validateAssStructure(assContent);
       
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].type).toBe('OVERLAPPING_CUES');
+      expect(result.isValid).toBe(true);
+      expect(result.warnings.length).toBeGreaterThan(0);
+      expect(result.warnings.some(w => w.message.includes('Overlapping'))).toBe(true);
     });
 
     test('should detect invalid time format', () => {

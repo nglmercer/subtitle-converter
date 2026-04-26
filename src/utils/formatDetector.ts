@@ -139,6 +139,13 @@ function detectVtt(content: string): FormatDetectionResult {
     confidence += 0.05;
   }
 
+  // Penalize confidence if content has strong ASS/SSA indicators
+  // (handles mixed files with WEBVTT header + ASS body)
+  if (content.includes('[Script Info]') || content.includes('[V4+ Styles]') || content.includes('Dialogue:')) {
+    reasons.push('Has conflicting ASS format indicators');
+    confidence -= 0.5;
+  }
+
   return {
     format: confidence >= 0.7 ? 'vtt' : null,
     confidence: Math.min(confidence, 1),

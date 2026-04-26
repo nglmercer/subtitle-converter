@@ -200,12 +200,24 @@ describe("Complex ASS Subtitle Parser - Re:Zero Episode", () => {
 
     it("should preserve dialogue count in cross-format conversion", () => {
       const universal = assToUniversal(assContent);
-      const originalCount = universal.cues.length;
+      const textCues = universal.cues.filter((c) => c.text.trim());
+      // Drawing-only cues (\p1) are stripped from text output
+      const drawingCues = universal.cues.length - textCues.length;
 
       const srt = formatFromUniversal(universal, "srt");
       const universal2 = parseToUniversal(srt, "srt");
 
-      expect(universal2.cues.length).toBe(originalCount);
+      expect(universal2.cues.length).toBe(textCues.length);
+      expect(drawingCues).toBeGreaterThan(0);
+    });
+
+    it("should strip drawing commands from text output", () => {
+      const universal = assToUniversal(assContent);
+      const srt = formatFromUniversal(universal, "srt");
+
+      // Vector drawing paths should not appear in SRT output
+      expect(srt).not.toMatch(/^m \d+ \d+ l /m);
+      expect(srt).not.toMatch(/\bm -66\.84\b/);
     });
 
     it("should convert newlines correctly in SRT", () => {

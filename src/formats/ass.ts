@@ -706,7 +706,7 @@ export function validateAssStructure(assContent: string): ValidationResult {
     });
   }
 
-  // Check for overlapping cues
+  // Check for overlapping cues (warnings for ASS since overlapping is intentional)
   for (let i = 0; i < cues.length - 1; i++) {
     const currentCue = cues[i];
     const nextCue = cues[i + 1];
@@ -717,8 +717,8 @@ export function validateAssStructure(assContent: string): ValidationResult {
     const nextStart = timeToMilliseconds(nextCue.startTime);
 
     if (currentEnd > nextStart) {
-      errors.push({
-        type: "OVERLAPPING_CUES",
+      warnings.push({
+        type: "GAP_BETWEEN_CUES",
         message: `Overlapping cues: cue ${i + 1} ends after cue ${i + 2} starts`,
         cueIndex: i,
       });
@@ -806,6 +806,16 @@ function cleanAssText(assText: string): string {
 
   // Remove other ASS escape sequences
   cleanText = cleanText.replace(/\\h/g, " "); // Non-breaking space
+
+  // Strip ASS vector drawing commands (drawing-only content)
+  // ASS drawing mode (\p1-\p9) produces vector path data like "m x y l x y b x1 y1 ..."
+  // that is not readable text and should not appear in text output
+  if (/\\p[1-9]/.test(assText)) {
+    cleanText = cleanText.replace(
+      /^[ \t]*(?:[mnlbpsc][ \t]+(?:-?\d+(?:\.\d+)?[ \t]*)+)+[ \t]*$/,
+      "",
+    );
+  }
 
   // Trim whitespace
   cleanText = cleanText.trim();
