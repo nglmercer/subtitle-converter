@@ -5,6 +5,7 @@ import type {
   SubtitleFormat,
   SubtitleAnalysis,
   UniversalCue,
+  StyleDefinition,
 } from "subs-converter";
 import {
   parseToUniversal,
@@ -18,6 +19,8 @@ import { SubtitleList } from "./components/SubtitleList";
 import { CueEditor } from "./components/CueEditor";
 import { PreviewPanel } from "./components/PreviewPanel";
 import { AnalysisPanel } from "./components/AnalysisPanel";
+import { StyleEditor } from "./components/StyleEditor";
+import { ActorManager } from "./components/ActorManager";
 
 export function App() {
   const [universal, setUniversal] = useState<UniversalSubtitle | null>(null);
@@ -55,6 +58,36 @@ export function App() {
       if (!universal) return;
       const u = { ...universal, cues: [...universal.cues] };
       u.cues[index] = { ...u.cues[index], ...updates };
+      setUniversal(u);
+    },
+    [universal],
+  );
+
+  const handleStyleUpdate = useCallback(
+    (name: string, updates: Partial<StyleDefinition>) => {
+      if (!universal) return;
+      const u = { ...universal, styles: universal.styles.map((s) =>
+        s.name === name ? { ...s, ...updates } : s,
+      )};
+      setUniversal(u);
+    },
+    [universal],
+  );
+
+  const handleActorRename = useCallback(
+    (oldName: string, newName: string) => {
+      if (!universal) return;
+      const u = { ...universal, cues: universal.cues.map((c) => {
+        const actor = c.formatSpecific?.ass?.actor;
+        if (actor !== oldName) return c;
+        return {
+          ...c,
+          formatSpecific: {
+            ...c.formatSpecific,
+            ass: { ...c.formatSpecific?.ass, actor: newName },
+          },
+        };
+      })};
       setUniversal(u);
     },
     [universal],
@@ -298,6 +331,18 @@ export function App() {
                 <PreviewPanel
                   universal={universal}
                   selectedIndex={selectedIndex}
+                />
+              )}
+              {universal && universal.styles.length > 0 && (
+                <StyleEditor
+                  styles={universal.styles}
+                  onUpdate={handleStyleUpdate}
+                />
+              )}
+              {universal && (
+                <ActorManager
+                  universal={universal}
+                  onActorRename={handleActorRename}
                 />
               )}
             </div>

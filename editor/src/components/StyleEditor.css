@@ -1,0 +1,149 @@
+.style-editor {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.se-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.se-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.se-toggle {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.se-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.se-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.se-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-tertiary);
+}
+
+.se-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  flex: 1;
+}
+
+.se-card-preview {
+  width: 28px;
+  text-align: center;
+  line-height: 1;
+}
+
+.se-card-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.se-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.se-row label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+.se-row input[type="text"],
+.se-row input[type="number"],
+.se-row select {
+  flex: 1;
+  min-width: 60px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+.se-row input:focus,
+.se-row select:focus {
+  border-color: var(--accent);
+}
+
+.se-row input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.se-color-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.se-color-group input[type="color"] {
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.se-color-label {
+  font-size: 9px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.se-apply {
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.btn-disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}

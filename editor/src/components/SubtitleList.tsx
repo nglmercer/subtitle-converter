@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'preact/hooks';
 import type { UniversalCue } from 'subs-converter';
 import './SubtitleList.css';
 
@@ -16,23 +17,41 @@ function msToTimeStr(ms: number): string {
 }
 
 export function SubtitleList({ cues, selectedIndex, onSelect }: Props) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedIndex < 0 || !listRef.current) return;
+    const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement | null;
+    if (sel) {
+      const container = listRef.current;
+      const itemTop = sel.offsetTop;
+      const itemBottom = itemTop + sel.offsetHeight;
+      const scrollTop = container.scrollTop;
+      const scrollBottom = scrollTop + container.clientHeight;
+      if (itemTop < scrollTop || itemBottom > scrollBottom) {
+        sel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  }, [selectedIndex]);
+
   return (
-    <div class="subtitle-list">
+    <div class="subtitle-list" ref={listRef}>
       {cues.length === 0 ? (
         <div class="subtitle-item" style={{ color: 'var(--text-secondary)', fontStyle: 'italic', padding: 16 }}>
-          {cues.length === 0
-            ? 'No cues found'
-            : 'No results match your search'}
+          No results match your search
         </div>
       ) : (
-        cues.map((cue, i) => {
+        cues.map((cue) => {
           const actualIndex = cue.index - 1;
+          const isSelected = actualIndex === selectedIndex;
           const actor = cue.formatSpecific?.ass?.actor || "";
           const style = cue.style || "";
           return (
             <div
               key={cue.index}
-              class={`subtitle-item${actualIndex === selectedIndex ? ' selected' : ''}`}
+              data-index={actualIndex}
+              data-selected={isSelected ? "true" : undefined}
+              class={`subtitle-item${isSelected ? ' selected' : ''}`}
               onClick={() => onSelect(actualIndex)}
             >
               <div class="subtitle-item-meta">

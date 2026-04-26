@@ -8,13 +8,28 @@ interface Props {
   onSelect: (index: number) => void;
 }
 
-const CUE_COLORS = [
+const PALETTE = [
   '#1f6feb', '#238636', '#9e6a03', '#bd2b2b',
   '#8250df', '#1b7c83', '#c061cb', '#d29922',
+  '#f78166', '#56d364', '#db6d28', '#bc8cff',
 ];
 
-function getCueColor(index: number): string {
-  return CUE_COLORS[index % CUE_COLORS.length];
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+function getCueGroupKey(cue: UniversalCue): string {
+  return cue.formatSpecific?.ass?.actor || cue.style || "";
+}
+
+function getCueColor(cue: UniversalCue): string {
+  const key = getCueGroupKey(cue);
+  if (!key) return PALETTE[0];
+  return PALETTE[hashString(key) % PALETTE.length];
 }
 
 function formatTime(ms: number): string {
@@ -64,17 +79,18 @@ export function Timeline({ cues, totalMs, selectedIndex, onSelect }: Props) {
         {cues.map((cue, i) => {
           const left = totalMs > 0 ? (cue.startTime / totalMs) * totalWidth : 0;
           const w = totalMs > 0 ? ((cue.endTime - cue.startTime) / totalMs) * totalWidth : 0;
+          const key = getCueGroupKey(cue);
           return (
             <div
               key={cue.index}
-              class={`timeline-cue${i === selectedIndex ? ' selected' : ''}`}
+              class={`timeline-cue${i === selectedIndex ? ' selected' : ''}${key ? ' timeline-cue-grouped' : ''}`}
               style={{
                 left: `${left}px`,
                 width: `${Math.max(w, 4)}px`,
-                background: getCueColor(i),
+                background: getCueColor(cue),
               }}
               onClick={() => onSelect(i)}
-              title={`#${cue.index}: ${cue.text}`}
+              title={`#${cue.index}${key ? ` [${key}]` : ''}: ${cue.text}`}
             >
               {w > 40 && (
                 <span class="timeline-cue-label">
