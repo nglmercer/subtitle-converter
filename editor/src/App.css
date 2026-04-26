@@ -309,3 +309,50 @@ body,
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
 }
+
+/* ─── Shortcuts ─── */
+.shortcuts-tip {
+  position: relative;
+  display: flex;
+}
+
+.shortcuts-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  min-width: 220px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 3px 0;
+  white-space: nowrap;
+}
+
+.shortcuts-row + .shortcuts-row {
+  border-top: 1px solid var(--border);
+}
+
+.shortcuts-row kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--text-primary);
+}
+
+.shortcuts-row span {
+  margin-left: auto;
+}

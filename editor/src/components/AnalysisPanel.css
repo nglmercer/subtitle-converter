@@ -1,54 +1,73 @@
-.analysis-panel {
+.analysis-tip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+
+.analysis-tip-trigger {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.analysis-tip-popup {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 10px 12px;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  pointer-events: none;
 }
 
-.analysis-panel h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.analysis-tip:hover .analysis-tip-popup {
+  display: block;
 }
 
-.analysis-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.analysis-item {
+.analysis-tip-row {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px;
-  background: var(--bg-primary);
-  border-radius: var(--radius-sm);
-}
-
-.analysis-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.analysis-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-}
-
-.analysis-text {
+  justify-content: space-between;
+  gap: 12px;
   font-size: 11px;
   color: var(--text-secondary);
-  margin-top: 2px;
+  padding: 2px 0;
+}
+
+.analysis-tip-row + .analysis-tip-row {
+  border-top: none;
+}
+
+.analysis-tip-val {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.analysis-tip-text {
+  padding-left: 4px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.analysis-tip-text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.analysis-tip-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
 }
