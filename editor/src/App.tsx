@@ -1,45 +1,59 @@
-import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
-import type { UniversalSubtitle, SubtitleFormat, SubtitleAnalysis, UniversalCue } from 'subs-converter';
-import { parseToUniversal, formatFromUniversal, analyze, detectFormat } from 'subs-converter';
-import { FileDrop } from './components/FileDrop';
-import { Timeline } from './components/Timeline';
-import { SubtitleList } from './components/SubtitleList';
-import { CueEditor } from './components/CueEditor';
-import { PreviewPanel } from './components/PreviewPanel';
-import { AnalysisPanel } from './components/AnalysisPanel';
+import { useState, useCallback, useEffect, useRef } from "preact/hooks";
+import type {
+  UniversalSubtitle,
+  SubtitleFormat,
+  SubtitleAnalysis,
+  UniversalCue,
+} from "subs-converter";
+import {
+  parseToUniversal,
+  formatFromUniversal,
+  analyze,
+  detectFormat,
+} from "subs-converter";
+import { FileDrop } from "./components/FileDrop";
+import { Timeline } from "./components/Timeline";
+import { SubtitleList } from "./components/SubtitleList";
+import { CueEditor } from "./components/CueEditor";
+import { PreviewPanel } from "./components/PreviewPanel";
+import { AnalysisPanel } from "./components/AnalysisPanel";
 
 export function App() {
   const [universal, setUniversal] = useState<UniversalSubtitle | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const [fileName, setFileName] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [detectedFormat, setDetectedFormat] = useState<string>('');
+  const [fileName, setFileName] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [detectedFormat, setDetectedFormat] = useState<string>("");
   const [analysis, setAnalysis] = useState<SubtitleAnalysis | null>(null);
-  const [exportFormat, setExportFormat] = useState<SubtitleFormat>('srt');
-  const [exported, setExported] = useState<string>('');
+  const [exportFormat, setExportFormat] = useState<SubtitleFormat>("srt");
+  const [exported, setExported] = useState<string>("");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((name: string, text: string) => {
     const detected = detectFormat(text);
-    const fmt = detected?.format || 'srt';
+    const fmt = detected?.format || "srt";
     const u = parseToUniversal(text, fmt);
     setFileName(name);
     setDetectedFormat(fmt);
     setUniversal(u);
     setSelectedIndex(u.cues.length > 0 ? 0 : -1);
-    setSearchQuery('');
-    setExported('');
+    setSearchQuery("");
+    setExported("");
     const a = analyze(text, fmt);
+    console.log(u, a);
     setAnalysis(a);
   }, []);
 
-  const handleCueUpdate = useCallback((index: number, updates: Partial<UniversalCue>) => {
-    if (!universal) return;
-    const u = { ...universal, cues: [...universal.cues] };
-    u.cues[index] = { ...u.cues[index], ...updates };
-    setUniversal(u);
-  }, [universal]);
+  const handleCueUpdate = useCallback(
+    (index: number, updates: Partial<UniversalCue>) => {
+      if (!universal) return;
+      const u = { ...universal, cues: [...universal.cues] };
+      u.cues[index] = { ...u.cues[index], ...updates };
+      setUniversal(u);
+    },
+    [universal],
+  );
 
   const handleExport = useCallback(() => {
     if (!universal) return;
@@ -49,12 +63,12 @@ export function App() {
 
   const handleDownload = useCallback(() => {
     if (!exported) return;
-    const blob = new Blob([exported], { type: 'text/plain' });
+    const blob = new Blob([exported], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    const ext = exportFormat === 'csv' ? 'csv' : exportFormat;
-    a.download = `${fileName.replace(/\.[^.]+$/, '')}.${ext}`;
+    const ext = exportFormat === "csv" ? "csv" : exportFormat;
+    a.download = `${fileName.replace(/\.[^.]+$/, "")}.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
   }, [exported, exportFormat, fileName]);
@@ -62,33 +76,52 @@ export function App() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
-      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
       const mod = e.metaKey || e.ctrlKey;
 
-      if (mod && e.key === 'e') { e.preventDefault(); if (universal) handleExport(); return; }
-      if (mod && e.key === 'f') { e.preventDefault(); searchRef.current?.focus(); return; }
-      if (e.key === 'Escape') {
-        if (exported) { setExported(''); return; }
-        if (searchQuery) { setSearchQuery(''); return; }
+      if (mod && e.key === "e") {
+        e.preventDefault();
+        if (universal) handleExport();
         return;
       }
-      if (e.key === '?' && !isInput) { setShowShortcuts(p => !p); return; }
-      if (e.key === 'ArrowDown' && !isInput) {
+      if (mod && e.key === "f") {
         e.preventDefault();
-        if (universal) setSelectedIndex(i => Math.min(i + 1, universal.cues.length - 1));
+        searchRef.current?.focus();
         return;
       }
-      if (e.key === 'ArrowUp' && !isInput) {
+      if (e.key === "Escape") {
+        if (exported) {
+          setExported("");
+          return;
+        }
+        if (searchQuery) {
+          setSearchQuery("");
+          return;
+        }
+        return;
+      }
+      if (e.key === "?" && !isInput) {
+        setShowShortcuts((p) => !p);
+        return;
+      }
+      if (e.key === "ArrowDown" && !isInput) {
         e.preventDefault();
-        setSelectedIndex(i => Math.max(i - 1, 0));
+        if (universal)
+          setSelectedIndex((i) => Math.min(i + 1, universal.cues.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp" && !isInput) {
+        e.preventDefault();
+        setSelectedIndex((i) => Math.max(i - 1, 0));
         return;
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [universal, exported, searchQuery, handleExport]);
 
-  const selectedCue = universal && selectedIndex >= 0 ? universal.cues[selectedIndex] : null;
+  const selectedCue =
+    universal && selectedIndex >= 0 ? universal.cues[selectedIndex] : null;
 
   const filteredCues = universal
     ? searchQuery.trim()
@@ -132,18 +165,29 @@ export function App() {
               <div class="shortcuts-tip">
                 <button
                   class="btn btn-sm btn-secondary"
-                  onClick={() => setShowShortcuts(p => !p)}
+                  onClick={() => setShowShortcuts((p) => !p)}
                   title="Keyboard shortcuts"
                 >
                   ⌨
                 </button>
                 {showShortcuts && (
                   <div class="shortcuts-popup">
-                    <div class="shortcuts-row"><kbd>↑</kbd><kbd>↓</kbd> <span>Navigate cues</span></div>
-                    <div class="shortcuts-row"><kbd>⌘E</kbd> / <kbd>Ctrl+E</kbd> <span>Export</span></div>
-                    <div class="shortcuts-row"><kbd>⌘F</kbd> / <kbd>Ctrl+F</kbd> <span>Search</span></div>
-                    <div class="shortcuts-row"><kbd>Esc</kbd> <span>Clear search/export</span></div>
-                    <div class="shortcuts-row"><kbd>?</kbd> <span>Toggle shortcuts</span></div>
+                    <div class="shortcuts-row">
+                      <kbd>↑</kbd>
+                      <kbd>↓</kbd> <span>Navigate cues</span>
+                    </div>
+                    <div class="shortcuts-row">
+                      <kbd>⌘E</kbd> / <kbd>Ctrl+E</kbd> <span>Export</span>
+                    </div>
+                    <div class="shortcuts-row">
+                      <kbd>⌘F</kbd> / <kbd>Ctrl+F</kbd> <span>Search</span>
+                    </div>
+                    <div class="shortcuts-row">
+                      <kbd>Esc</kbd> <span>Clear search/export</span>
+                    </div>
+                    <div class="shortcuts-row">
+                      <kbd>?</kbd> <span>Toggle shortcuts</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -214,7 +258,7 @@ export function App() {
                   </button>
                   <button
                     class="btn btn-sm btn-secondary"
-                    onClick={() => setExported('')}
+                    onClick={() => setExported("")}
                   >
                     Close
                   </button>
