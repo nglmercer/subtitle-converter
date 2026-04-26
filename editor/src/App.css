@@ -402,20 +402,28 @@ body,
     justify-content: flex-start;
   }
 
+  .app {
+    height: auto;
+    min-height: 100vh;
+  }
+
   .main-content {
     flex-direction: column;
+    flex: none;
   }
 
   .panel-left {
     width: 100%;
     min-width: 0;
-    max-height: 50vh;
+    max-height: 35vh;
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
 
   .panel-right {
     padding: 10px;
+    flex: none;
+    overflow-y: visible;
   }
 
   .filter-row {
@@ -431,6 +439,11 @@ body,
     margin: 10px;
     max-height: 95vh;
   }
+
+  .preview-screen {
+    aspect-ratio: auto;
+    min-height: 200px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -439,7 +452,7 @@ body,
   }
 
   .panel-left {
-    max-height: 40vh;
+    max-height: 30vh;
   }
 
   .panel-right {
@@ -447,6 +460,11 @@ body,
   }
 
   .cue-timing {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cue-meta-row {
     flex-direction: column;
     gap: 8px;
   }
