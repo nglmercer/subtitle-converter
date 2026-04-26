@@ -18,6 +18,8 @@ import type {
   StyleDefinition,
   ConversionOptions,
   ValidationResult,
+  ValidationError,
+  ValidationWarning,
 } from "./types.js";
 
 import {
@@ -46,7 +48,7 @@ export type ChangeType =
 export interface ChangeEvent {
   type: ChangeType;
   timestamp: number;
-  data: any;
+  data: Record<string, unknown>;
 }
 
 /**
@@ -751,8 +753,8 @@ export class SubtitleEditor {
       };
     }
 
-    const errors: any[] = [];
-    const warnings: any[] = [];
+    const errors: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
 
     const {
       checkDurations = true,
@@ -818,8 +820,8 @@ export class SubtitleEditor {
    * Validate all cues
    */
   validateAll(options: ValidationOptions = {}): ValidationResult {
-    const allErrors: any[] = [];
-    const allWarnings: any[] = [];
+    const allErrors: ValidationError[] = [];
+    const allWarnings: ValidationWarning[] = [];
 
     // Validate each cue
     this.universal.cues.forEach((_, index) => {

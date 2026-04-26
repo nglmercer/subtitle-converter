@@ -146,8 +146,9 @@ export function assToUniversal(assContent: string): UniversalSubtitle {
   }
 
   // Build metadata
+  const title = scriptInfo["Title"];
   const metadata: SubtitleMetadata = {
-    title: scriptInfo["Title"],
+    ...(title ? { title } : {}),
     formatSpecific: {
       ass: {},
     },
@@ -204,44 +205,44 @@ export function universalToAss(universal: UniversalSubtitle): string {
   // Script Info section
   parts.push("[Script Info]");
 
-  const assMetadata = universal.metadata.formatSpecific?.ass || {};
+  const assMetadata: Record<string, unknown> = universal.metadata.formatSpecific?.ass ?? {};
 
   parts.push(
     `Title: ${universal.metadata.title || assMetadata["Title"] || "Converted Subtitle"}`,
   );
   parts.push(
-    `ScriptType: ${assMetadata.scriptType || assMetadata["ScriptType"] || "v4.00+"}`,
+    `ScriptType: ${assMetadata["scriptType"] || assMetadata["ScriptType"] || "v4.00+"}`,
   );
 
-  if (assMetadata.wrapStyle !== undefined)
+  if (assMetadata["wrapStyle"] !== undefined)
     parts.push(
-      `WrapStyle: ${assMetadata.wrapStyle || assMetadata["WrapStyle"]}`,
+      `WrapStyle: ${assMetadata["wrapStyle"] || assMetadata["WrapStyle"]}`,
     );
-  if (assMetadata.playResX !== undefined)
-    parts.push(`PlayResX: ${assMetadata.playResX || assMetadata["PlayResX"]}`);
-  if (assMetadata.playResY !== undefined)
-    parts.push(`PlayResY: ${assMetadata.playResY || assMetadata["PlayResY"]}`);
-  if ((assMetadata as any).scaledBorderAndShadow !== undefined)
+  if (assMetadata["playResX"] !== undefined)
+    parts.push(`PlayResX: ${assMetadata["playResX"] || assMetadata["PlayResX"]}`);
+  if (assMetadata["playResY"] !== undefined)
+    parts.push(`PlayResY: ${assMetadata["playResY"] || assMetadata["PlayResY"]}`);
+  if (assMetadata["scaledBorderAndShadow"] !== undefined)
     parts.push(
-      `ScaledBorderAndShadow: ${(assMetadata as any).scaledBorderAndShadow || (assMetadata as any)["ScaledBorderAndShadow"]}`,
+      `ScaledBorderAndShadow: ${assMetadata["scaledBorderAndShadow"] || assMetadata["ScaledBorderAndShadow"]}`,
     );
-  if ((assMetadata as any).yCbCrMatrix !== undefined)
+  if (assMetadata["yCbCrMatrix"] !== undefined)
     parts.push(
-      `YCbCr Matrix: ${(assMetadata as any).yCbCrMatrix || (assMetadata as any)["YCbCr Matrix"]}`,
+      `YCbCr Matrix: ${assMetadata["yCbCrMatrix"] || assMetadata["YCbCr Matrix"]}`,
     );
 
   parts.push(
-    `Collisions: ${assMetadata.collisions || assMetadata["Collisions"] || "Normal"}`,
+    `Collisions: ${assMetadata["collisions"] || assMetadata["Collisions"] || "Normal"}`,
   );
   parts.push(
-    `PlayDepth: ${assMetadata.playDepth || assMetadata["PlayDepth"] || "0"}`,
+    `PlayDepth: ${assMetadata["playDepth"] || assMetadata["PlayDepth"] || "0"}`,
   );
   parts.push(
-    `Timer: ${assMetadata.timer || assMetadata["Timer"] || "100.000"}`,
+    `Timer: ${assMetadata["timer"] || assMetadata["Timer"] || "100.000"}`,
   );
 
-  if (assMetadata.timer !== undefined)
-    parts.push(`Timer: ${assMetadata.timer || (assMetadata as any)["Timer"]}`);
+  if (assMetadata["timer"] !== undefined)
+    parts.push(`Timer: ${assMetadata["timer"] || assMetadata["Timer"]}`);
 
   parts.push("");
 
@@ -275,7 +276,7 @@ export function universalToAss(universal: UniversalSubtitle): string {
     const layer = assSpecific.layer !== undefined ? assSpecific.layer : 0;
     const startTime = msToAssTime(cue.startTime);
     const endTime = msToAssTime(cue.endTime);
-    const style = cue.style || (assSpecific as any).style || "Default";
+    const style = cue.style || assSpecific["style"] || "Default";
     const actor = assSpecific.actor || "";
     const marginL = assSpecific.marginL !== undefined ? assSpecific.marginL : 0;
     const marginR = assSpecific.marginR !== undefined ? assSpecific.marginR : 0;
@@ -303,90 +304,89 @@ function parseAssStyle(
 ): StyleDefinition | null {
   if (format.length === 0 || data.length === 0) return null;
 
-  const styleObj: any = {};
+  const styleObj: Record<string, string> = {};
   format.forEach((key, index) => {
     if (data[index] !== undefined) {
       styleObj[key] = data[index];
     }
   });
 
-  const style: any = {
-    name: styleObj.Name || "Default",
+  const style: Record<string, unknown> = {
+    ["name"]: styleObj["Name"] || "Default",
   };
 
-  // Only add properties that exist to avoid exactOptionalPropertyTypes issues
-  if (styleObj.Fontname !== undefined) {
-    style.fontName = styleObj.Fontname;
+  if (styleObj["Fontname"] !== undefined) {
+    style["fontName"] = styleObj["Fontname"];
   }
-  if (styleObj.Fontsize !== undefined) {
-    style.fontSize = parseInt(styleObj.Fontsize);
+  if (styleObj["Fontsize"] !== undefined) {
+    style["fontSize"] = parseInt(styleObj["Fontsize"]);
   }
-  if (styleObj.PrimaryColour !== undefined) {
-    style.primaryColor = styleObj.PrimaryColour;
+  if (styleObj["PrimaryColour"] !== undefined) {
+    style["primaryColor"] = styleObj["PrimaryColour"];
   }
-  if (styleObj.SecondaryColour !== undefined) {
-    style.secondaryColor = styleObj.SecondaryColour;
+  if (styleObj["SecondaryColour"] !== undefined) {
+    style["secondaryColor"] = styleObj["SecondaryColour"];
   }
-  if (styleObj.OutlineColour !== undefined) {
-    style.outlineColor = styleObj.OutlineColour;
+  if (styleObj["OutlineColour"] !== undefined) {
+    style["outlineColor"] = styleObj["OutlineColour"];
   }
-  if (styleObj.BackColour !== undefined) {
-    style.backColor = styleObj.BackColour;
+  if (styleObj["BackColour"] !== undefined) {
+    style["backColor"] = styleObj["BackColour"];
   }
-  if (styleObj.Bold !== undefined) {
-    style.bold = styleObj.Bold === "-1" || styleObj.Bold === "1";
+  if (styleObj["Bold"] !== undefined) {
+    style["bold"] = styleObj["Bold"] === "-1" || styleObj["Bold"] === "1";
   }
-  if (styleObj.Italic !== undefined) {
-    style.italic = styleObj.Italic === "-1" || styleObj.Italic === "1";
+  if (styleObj["Italic"] !== undefined) {
+    style["italic"] = styleObj["Italic"] === "-1" || styleObj["Italic"] === "1";
   }
-  if (styleObj.Underline !== undefined) {
-    style.underline = styleObj.Underline === "-1" || styleObj.Underline === "1";
+  if (styleObj["Underline"] !== undefined) {
+    style["underline"] = styleObj["Underline"] === "-1" || styleObj["Underline"] === "1";
   }
-  if (styleObj.StrikeOut !== undefined) {
-    style.strikeOut = styleObj.StrikeOut === "-1" || styleObj.StrikeOut === "1";
+  if (styleObj["StrikeOut"] !== undefined) {
+    style["strikeOut"] = styleObj["StrikeOut"] === "-1" || styleObj["StrikeOut"] === "1";
   }
-  if (styleObj.ScaleX !== undefined) {
-    style.scaleX = parseFloat(styleObj.ScaleX);
+  if (styleObj["ScaleX"] !== undefined) {
+    style["scaleX"] = parseFloat(styleObj["ScaleX"]);
   }
-  if (styleObj.ScaleY !== undefined) {
-    style.scaleY = parseFloat(styleObj.ScaleY);
+  if (styleObj["ScaleY"] !== undefined) {
+    style["scaleY"] = parseFloat(styleObj["ScaleY"]);
   }
-  if (styleObj.Spacing !== undefined) {
-    style.spacing = parseFloat(styleObj.Spacing);
+  if (styleObj["Spacing"] !== undefined) {
+    style["spacing"] = parseFloat(styleObj["Spacing"]);
   }
-  if (styleObj.Angle !== undefined) {
-    style.angle = parseFloat(styleObj.Angle);
+  if (styleObj["Angle"] !== undefined) {
+    style["angle"] = parseFloat(styleObj["Angle"]);
   }
-  if (styleObj.BorderStyle !== undefined) {
-    style.borderStyle = parseInt(styleObj.BorderStyle);
+  if (styleObj["BorderStyle"] !== undefined) {
+    style["borderStyle"] = parseInt(styleObj["BorderStyle"]);
   }
-  if (styleObj.Outline !== undefined) {
-    style.outline = parseFloat(styleObj.Outline);
+  if (styleObj["Outline"] !== undefined) {
+    style["outline"] = parseFloat(styleObj["Outline"]);
   }
-  if (styleObj.Shadow !== undefined) {
-    style.shadow = parseFloat(styleObj.Shadow);
+  if (styleObj["Shadow"] !== undefined) {
+    style["shadow"] = parseFloat(styleObj["Shadow"]);
   }
-  if (styleObj.Alignment !== undefined) {
-    style.alignment = parseInt(styleObj.Alignment);
+  if (styleObj["Alignment"] !== undefined) {
+    style["alignment"] = parseInt(styleObj["Alignment"]);
   }
-  if (styleObj.MarginL !== undefined) {
-    style.marginL = parseInt(styleObj.MarginL);
+  if (styleObj["MarginL"] !== undefined) {
+    style["marginL"] = parseInt(styleObj["MarginL"]);
   }
-  if (styleObj.MarginR !== undefined) {
-    style.marginR = parseInt(styleObj.MarginR);
+  if (styleObj["MarginR"] !== undefined) {
+    style["marginR"] = parseInt(styleObj["MarginR"]);
   }
-  if (styleObj.MarginV !== undefined) {
-    style.marginV = parseInt(styleObj.MarginV);
+  if (styleObj["MarginV"] !== undefined) {
+    style["marginV"] = parseInt(styleObj["MarginV"]);
   }
-  if (styleObj.Encoding !== undefined) {
-    style.encoding = parseInt(styleObj.Encoding);
+  if (styleObj["Encoding"] !== undefined) {
+    style["encoding"] = parseInt(styleObj["Encoding"]);
   }
 
-  style.formatSpecific = {
+  style["formatSpecific"] = {
     assRaw: styleObj,
   };
 
-  return style as StyleDefinition;
+  return style as unknown as StyleDefinition;
 }
 
 /**
@@ -408,23 +408,23 @@ function parseAssDialogue(
   const textStartIndex = match[1]!.split(",", 9).join(",").length + 1;
   const text = match[1]!.slice(textStartIndex);
 
-  const dialogueObj: any = {};
+  const dialogueObj: Record<string, string> = {};
   format.forEach((key, idx) => {
     if (idx < 9 && parts[idx] !== undefined) {
       dialogueObj[key] = parts[idx];
     }
   });
-  dialogueObj.Text = text;
+  dialogueObj["Text"] = text;
 
-  const layer = parseInt(dialogueObj.Layer || "0");
-  const startTimeStr = dialogueObj.Start || "0:00:00.00";
-  const endTimeStr = dialogueObj.End || "0:00:00.00";
-  const style = dialogueObj.Style || "Default";
-  const actor = dialogueObj.Name || "";
-  const marginL = parseInt(dialogueObj.MarginL || "0");
-  const marginR = parseInt(dialogueObj.MarginR || "0");
-  const marginV = parseInt(dialogueObj.MarginV || "0");
-  const effect = dialogueObj.Effect || "";
+  const layer = parseInt(dialogueObj["Layer"] || "0");
+  const startTimeStr = dialogueObj["Start"] || "0:00:00.00";
+  const endTimeStr = dialogueObj["End"] || "0:00:00.00";
+  const style = dialogueObj["Style"] || "Default";
+  const actor = dialogueObj["Name"] || "";
+  const marginL = parseInt(dialogueObj["MarginL"] || "0");
+  const marginR = parseInt(dialogueObj["MarginR"] || "0");
+  const marginV = parseInt(dialogueObj["MarginV"] || "0");
+  const effect = dialogueObj["Effect"] || "";
 
   // Convert ASS time to milliseconds
   const startTime = assTimeToMs(startTimeStr);

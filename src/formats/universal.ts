@@ -225,26 +225,25 @@ export function mergeMetadata(
  * Validate universal subtitle structure
  */
 export function validateUniversal(
-  universal: any,
+  universal: unknown,
 ): universal is UniversalSubtitle {
   if (!universal || typeof universal !== "object") return false;
+  const u = universal as Record<string, unknown>;
 
-  if (!universal.version || typeof universal.version !== "string") return false;
-  if (!universal.sourceFormat || typeof universal.sourceFormat !== "string")
-    return false;
-  if (!universal.metadata || typeof universal.metadata !== "object")
-    return false;
-  if (!Array.isArray(universal.styles)) return false;
-  if (!Array.isArray(universal.cues)) return false;
+  if (typeof u["version"] !== "string") return false;
+  if (typeof u["sourceFormat"] !== "string") return false;
+  if (typeof u["metadata"] !== "object" || !u["metadata"]) return false;
+  if (!Array.isArray(u["styles"])) return false;
+  if (!Array.isArray(u["cues"])) return false;
 
-  // Validate cues
-  for (const cue of universal.cues) {
-    if (typeof cue.index !== "number") return false;
-    if (typeof cue.startTime !== "number") return false;
-    if (typeof cue.endTime !== "number") return false;
-    if (typeof cue.duration !== "number") return false;
-    if (typeof cue.text !== "string") return false;
-    if (typeof cue.content !== "string") return false;
+  for (const cue of u["cues"]) {
+    const c = cue as Record<string, unknown>;
+    if (typeof c["index"] !== "number") return false;
+    if (typeof c["startTime"] !== "number") return false;
+    if (typeof c["endTime"] !== "number") return false;
+    if (typeof c["duration"] !== "number") return false;
+    if (typeof c["text"] !== "string") return false;
+    if (typeof c["content"] !== "string") return false;
   }
 
   return true;
@@ -264,7 +263,7 @@ export function universalToJson(
  * Parse JSON string to universal format
  */
 export function jsonToUniversal(jsonContent: string): UniversalSubtitle {
-  let parsed: any;
+  let parsed: unknown;
 
   try {
     parsed = JSON.parse(jsonContent);
@@ -276,7 +275,7 @@ export function jsonToUniversal(jsonContent: string): UniversalSubtitle {
 
   // Check if it's already in universal format
   if (validateUniversal(parsed)) {
-    return parsed as UniversalSubtitle;
+    return parsed;
   }
 
   // Check if it's the old JSON format (array of captions)
@@ -291,17 +290,17 @@ export function jsonToUniversal(jsonContent: string): UniversalSubtitle {
  * Convert legacy JSON format to universal format
  */
 function convertLegacyJsonToUniversal(
-  legacyCaptions: any[],
+  legacyCaptions: Record<string, unknown>[],
 ): UniversalSubtitle {
   const cues: UniversalCue[] = legacyCaptions
-    .filter((caption) => caption.type === "caption")
+    .filter((caption) => caption["type"] === "caption")
     .map((caption) => ({
-      index: caption.index || 0,
-      startTime: caption.start,
-      endTime: caption.end,
-      duration: caption.duration || caption.end - caption.start,
-      text: caption.text || caption.content || "",
-      content: caption.content || caption.text || "",
+      index: (caption["index"] as number) || 0,
+      startTime: caption["start"] as number,
+      endTime: caption["end"] as number,
+      duration: (caption["duration"] as number) || ((caption["end"] as number) - (caption["start"] as number)),
+      text: (caption["text"] as string) || (caption["content"] as string) || "",
+      content: (caption["content"] as string) || (caption["text"] as string) || "",
     }));
 
   return {
@@ -316,7 +315,7 @@ function convertLegacyJsonToUniversal(
 /**
  * Convert universal format to legacy JSON format for backward compatibility
  */
-export function universalToLegacyJson(universal: UniversalSubtitle): any[] {
+export function universalToLegacyJson(universal: UniversalSubtitle): Record<string, unknown>[] {
   return universal.cues.map((cue) => ({
     type: "caption",
     index: cue.index,

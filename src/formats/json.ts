@@ -96,7 +96,7 @@ export function validateJsonStructure(jsonContent: string): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
   
-  let captions: any[];
+  let captions: JsonCaption[];
   try {
     captions = JSON.parse(jsonContent);
   } catch (error) {

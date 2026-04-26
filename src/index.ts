@@ -16,6 +16,7 @@ import type {
   ValidationResult,
   SubtitleFormat,
   UniversalSubtitle,
+  StyleDefinition,
   ConversionOptions,
   RendererAdapter,
   RenderOptions,
@@ -275,7 +276,7 @@ export function renderJson(
   const compact = options?.compact ?? true;
   const styles = mapStyles(universal.styles, target);
   if (compact) {
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       v: universal.version,
       f: universal.sourceFormat,
       s: styles,
@@ -283,7 +284,7 @@ export function renderJson(
     };
     return JSON.stringify(payload);
   }
-  const payload: any = {
+  const payload: Record<string, unknown> = {
     version: universal.version,
     format: universal.sourceFormat,
     styles,
@@ -293,8 +294,8 @@ export function renderJson(
   return JSON.stringify(payload);
 }
 
-function mapStyles(styles: any[], target: string): any {
-  const out: any = {};
+function mapStyles(styles: StyleDefinition[], target: string): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
   for (const s of styles) {
     const name = s.name || "Default";
     if (target === "raw") {
