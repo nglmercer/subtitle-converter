@@ -2,7 +2,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 14px;
 }
 
 .cue-editor h3 {
@@ -15,42 +15,89 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.cue-editor-modal-text {
-  width: 100%;
-  min-height: 180px;
-  padding: 10px 12px;
+/* ─── Icon button ─── */
+.btn-icon {
+  background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
+  color: var(--text-secondary);
   font-size: 14px;
-  line-height: 1.6;
-  resize: vertical;
-  outline: none;
+  cursor: pointer;
+  padding: 2px 8px;
+  line-height: 1.4;
+  transition: background 0.1s, color 0.1s;
 }
 
-.cue-editor-modal-text:focus {
-  border-color: var(--accent);
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+  color: var(--accent);
 }
 
-.cue-editor label {
-  display: block;
+/* ─── Summary ─── */
+.cue-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cue-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cue-summary-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.cue-summary-dur {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.cue-summary-actor {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
+  color: var(--accent);
+  background: rgba(88, 166, 255, 0.12);
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  align-self: flex-start;
 }
 
+.cue-summary-style {
+  font-size: 11px;
+  color: var(--success);
+  background: rgba(63, 185, 80, 0.12);
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+
+.cue-summary-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ─── Modal fields ─── */
 .cue-meta-row {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
 }
 
 .cue-meta-group {
@@ -73,9 +120,18 @@
   border-color: var(--accent);
 }
 
+.cue-editor label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
 .cue-editor textarea {
   width: 100%;
-  min-height: 80px;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -133,7 +189,21 @@
   border-radius: var(--radius-sm);
 }
 
-.cue-editor .btn {
+.cue-editor-modal-text {
   width: 100%;
-  justify-content: center;
+  min-height: 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+.cue-editor-modal-text:focus {
+  border-color: var(--accent);
 }

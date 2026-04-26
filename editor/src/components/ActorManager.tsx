@@ -8,11 +8,6 @@ interface Props {
   onActorRename: (oldName: string, newName: string) => void;
 }
 
-interface ActorEntry {
-  name: string;
-  count: number;
-}
-
 export function ActorManager({ universal, onActorRename }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [modalActor, setModalActor] = useState<string | null>(null);
@@ -26,11 +21,9 @@ export function ActorManager({ universal, onActorRename }: Props) {
     }
   }
 
-  const actors: ActorEntry[] = [];
-  for (const [name, count] of actorMap) {
-    actors.push({ name, count });
-  }
-  actors.sort((a, b) => b.count - a.count);
+  const actors = [...actorMap.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 
   if (actors.length === 0) return null;
 
@@ -68,17 +61,13 @@ export function ActorManager({ universal, onActorRename }: Props) {
             <div key={actor.name} class="am-row">
               <span class="am-name">{actor.name}</span>
               <span class="am-count">{actor.count}</span>
-              <button class="am-btn am-btn-rename" onClick={() => handleOpenRename(actor.name)}>Rename</button>
+              <button class="btn-icon" onClick={() => handleOpenRename(actor.name)} title="Rename">✎</button>
             </div>
           ))}
         </div>
       )}
 
-      <Modal
-        isOpen={modalActor !== null}
-        onClose={() => setModalActor(null)}
-        title={`Rename Actor: ${modalActor || ''}`}
-      >
+      <Modal isOpen={modalActor !== null} onClose={() => setModalActor(null)} title={`Rename: ${modalActor || ''}`}>
         <label for="am-rename-input" style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text-secondary);display:block;margin-bottom:4px;">New name</label>
         <input
           id="am-rename-input"

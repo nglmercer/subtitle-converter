@@ -382,3 +382,91 @@ body,
 .shortcuts-row span {
   margin-left: auto;
 }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+  .header {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-right {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .panel-left {
+    width: 100%;
+    min-width: 0;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-right {
+    padding: 10px;
+  }
+
+  .filter-row {
+    flex-wrap: wrap;
+  }
+
+  .filter-select {
+    min-width: 0;
+  }
+
+  .modal-panel {
+    max-width: 100%;
+    margin: 10px;
+    max-height: 95vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 14px;
+  }
+
+  .panel-left {
+    max-height: 40vh;
+  }
+
+  .panel-right {
+    padding: 8px;
+  }
+
+  .cue-timing {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .se-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .se-row label {
+    min-width: auto;
+  }
+
+  .se-row input[type="text"],
+  .se-row input[type="number"],
+  .se-row select {
+    width: 100%;
+  }
+
+  .se-color-group {
+    flex: 1;
+  }
+}

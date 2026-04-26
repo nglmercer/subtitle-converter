@@ -40,227 +40,62 @@ const ALIGN_OPTIONS = [
 ];
 
 export function StyleEditor({ styles, onUpdate }: Props) {
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [editingStyle, setEditingStyle] = useState<StyleDefinition | null>(null);
+  const [modalDraft, setModalDraft] = useState<Partial<StyleDefinition>>({});
 
   if (styles.length === 0) return null;
 
+  const openModal = (s: StyleDefinition) => {
+    setEditingStyle(s);
+    setModalDraft({});
+  };
+
+  const applyModal = () => {
+    if (editingStyle && Object.keys(modalDraft).length > 0) {
+      onUpdate(editingStyle.name, modalDraft);
+    }
+    setEditingStyle(null);
+    setModalDraft({});
+  };
+
   return (
     <div class="style-editor">
-      <div class="se-header" onClick={() => setExpanded(expanded ? null : '_panel')}>
+      <div class="se-header" onClick={() => setExpanded(!expanded)}>
         <h3>Styles ({styles.length})</h3>
         <span class="se-toggle">{expanded ? '▼' : '▶'}</span>
       </div>
 
       {expanded && (
         <div class="se-body">
-          {styles.map((style) => (
-            <StyleCard
-              key={style.name}
-              style={style}
-              isOpen={expanded === style.name}
-              onToggle={() => setExpanded(expanded === style.name ? null : style.name)}
-              onUpdate={(updates) => onUpdate(style.name, updates)}
-            />
+          {styles.map((s) => (
+            <div key={s.name} class="se-card">
+              <div class="se-card-header">
+                <span class="se-card-name">{s.name}</span>
+                <span class="se-card-preview" style={{
+                  fontFamily: s.fontName || 'Arial',
+                  fontSize: `${Math.min(s.fontSize || 20, 16)}px`,
+                  color: s.primaryColor ? assColorToHex(s.primaryColor) : '#fff',
+                  fontWeight: s.bold ? '700' : '400',
+                  fontStyle: s.italic ? 'italic' : 'normal',
+                }}>
+                  Aa
+                </span>
+                <button class="btn-icon" onClick={() => openModal(s)} title="Edit style">✎</button>
+              </div>
+            </div>
           ))}
         </div>
       )}
-    </div>
-  );
-}
 
-interface CardProps {
-  style: StyleDefinition;
-  isOpen: boolean;
-  onToggle: () => void;
-  onUpdate: (updates: Partial<StyleDefinition>) => void;
-}
-
-function StyleCard({ style, isOpen, onToggle, onUpdate }: CardProps) {
-  const [local, setLocal] = useState<Partial<StyleDefinition>>({});
-  const [showModal, setShowModal] = useState(false);
-  const [modalLocal, setModalLocal] = useState<Partial<StyleDefinition>>({});
-
-  const openModal = () => {
-    setModalLocal({});
-    setShowModal(true);
-  };
-
-  const value = <K extends keyof StyleDefinition>(key: K): StyleDefinition[K] =>
-    key in local ? local[key] : style[key];
-
-  const change = <K extends keyof StyleDefinition>(key: K, val: StyleDefinition[K]) => {
-    setLocal((p) => ({ ...p, [key]: val }));
-  };
-
-  const apply = () => {
-    if (Object.keys(local).length > 0) {
-      onUpdate(local);
-      setLocal({});
-    }
-  };
-
-  const hasChanges = Object.keys(local).length > 0;
-
-  return (
-    <div class="se-card">
-      <div class="se-card-header">
-        <span class="se-card-name" onClick={onToggle}>{style.name}</span>
-        <span class="se-card-preview" style={{
-          fontFamily: value('fontName') || 'Arial',
-          fontSize: `${Math.min(value('fontSize') || 20, 16)}px`,
-          color: value('primaryColor') ? assColorToHex(value('primaryColor')!) : '#fff',
-          fontWeight: value('bold') ? '700' : '400',
-          fontStyle: value('italic') ? 'italic' : 'normal',
-        }}>
-          Aa
-        </span>
-        <button class="btn btn-sm" onClick={(e) => { e.stopPropagation(); openModal(); }}>Edit</button>
-        <span class="se-toggle" onClick={onToggle}>{isOpen ? '▲' : '▼'}</span>
-      </div>
-
-      {isOpen && (
-        <div class="se-card-body">
-          <div class="se-row">
-            <label>Font</label>
-            <input
-              value={value('fontName') || ''}
-              onInput={(e: any) => change('fontName', e.currentTarget.value)}
-            />
-          </div>
-
-          <div class="se-row">
-            <label>Size</label>
-            <input
-              type="number"
-              value={value('fontSize') || 20}
-              onInput={(e: any) => change('fontSize', parseInt(e.currentTarget.value, 10) || 20)}
-            />
-          </div>
-
-          <div class="se-row">
-            <label>Color</label>
-            <div class="se-color-group">
-              <input
-                type="color"
-                value={assColorToHex(value('primaryColor') || '&H00FFFFFF')}
-                onInput={(e: any) => change('primaryColor', hexToAssColor(e.currentTarget.value))}
-              />
-              <span class="se-color-label">Text</span>
-            </div>
-            <div class="se-color-group">
-              <input
-                type="color"
-                value={assColorToHex(value('outlineColor') || '&H00000000')}
-                onInput={(e: any) => change('outlineColor', hexToAssColor(e.currentTarget.value))}
-              />
-              <span class="se-color-label">Outline</span>
-            </div>
-            <div class="se-color-group">
-              <input
-                type="color"
-                value={assColorToHex(value('backColor') || '&H00000000')}
-                onInput={(e: any) => change('backColor', hexToAssColor(e.currentTarget.value))}
-              />
-              <span class="se-color-label">Shadow</span>
-            </div>
-          </div>
-
-          <div class="se-row">
-            <label>Bold</label>
-            <input
-              type="checkbox"
-              checked={!!value('bold')}
-              onChange={(e: any) => change('bold', e.currentTarget.checked)}
-            />
-            <label>Italic</label>
-            <input
-              type="checkbox"
-              checked={!!value('italic')}
-              onChange={(e: any) => change('italic', e.currentTarget.checked)}
-            />
-            <label>Underline</label>
-            <input
-              type="checkbox"
-              checked={!!value('underline')}
-              onChange={(e: any) => change('underline', e.currentTarget.checked)}
-            />
-          </div>
-
-          <div class="se-row">
-            <label>Outline</label>
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              value={value('outline') ?? 0}
-              onInput={(e: any) => change('outline', parseFloat(e.currentTarget.value) || 0)}
-            />
-            <label>Shadow</label>
-            <input
-              type="number"
-              min="0"
-              step="0.5"
-              value={value('shadow') ?? 0}
-              onInput={(e: any) => change('shadow', parseFloat(e.currentTarget.value) || 0)}
-            />
-          </div>
-
-          <div class="se-row">
-            <label>Alignment</label>
-            <select
-              value={value('alignment') ?? 2}
-              onChange={(e: any) => change('alignment', parseInt(e.currentTarget.value, 10))}
-            >
-              {ALIGN_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div class="se-row">
-            <label>Scale X</label>
-            <input
-              type="number"
-              min="10"
-              max="200"
-              value={value('scaleX') ?? 100}
-              onInput={(e: any) => change('scaleX', parseFloat(e.currentTarget.value) || 100)}
-            />
-            <label>Scale Y</label>
-            <input
-              type="number"
-              min="10"
-              max="200"
-              value={value('scaleY') ?? 100}
-              onInput={(e: any) => change('scaleY', parseFloat(e.currentTarget.value) || 100)}
-            />
-          </div>
-
-          <button
-            class={`btn se-apply${hasChanges ? '' : ' btn-disabled'}`}
-            onClick={apply}
-            disabled={!hasChanges}
-          >
-            Apply
-          </button>
-        </div>
-      )}
-
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={`Edit Style: ${style.name}`}>
-        <StyleFields
-          style={{ ...style, ...modalLocal }}
-          onChange={(key, val) => setModalLocal((p) => ({ ...p, [key]: val }))}
-        />
-        <button
-          class="btn btn-export"
-          onClick={() => {
-            if (Object.keys(modalLocal).length > 0) {
-              onUpdate(modalLocal);
-              setModalLocal({});
-            }
-            setShowModal(false);
-          }}
-        >
+      <Modal isOpen={editingStyle !== null} onClose={() => setEditingStyle(null)} title={`Edit Style: ${editingStyle?.name || ''}`}>
+        {editingStyle && (
+          <StyleFields
+            style={{ ...editingStyle, ...modalDraft }}
+            onChange={(key, val) => setModalDraft((p) => ({ ...p, [key]: val }))}
+          />
+        )}
+        <button class="btn btn-export" onClick={applyModal}>
           Apply & Close
         </button>
       </Modal>
@@ -292,27 +127,15 @@ function StyleFields({ style, onChange }: {
       <div class="se-row">
         <label>Color</label>
         <div class="se-color-group">
-          <input
-            type="color"
-            value={assColorToHex(style.primaryColor || '&H00FFFFFF')}
-            onInput={(e: any) => onChange('primaryColor', hexToAssColor(e.currentTarget.value))}
-          />
+          <input type="color" value={assColorToHex(style.primaryColor || '&H00FFFFFF')} onInput={(e: any) => onChange('primaryColor', hexToAssColor(e.currentTarget.value))} />
           <span class="se-color-label">Text</span>
         </div>
         <div class="se-color-group">
-          <input
-            type="color"
-            value={assColorToHex(style.outlineColor || '&H00000000')}
-            onInput={(e: any) => onChange('outlineColor', hexToAssColor(e.currentTarget.value))}
-          />
+          <input type="color" value={assColorToHex(style.outlineColor || '&H00000000')} onInput={(e: any) => onChange('outlineColor', hexToAssColor(e.currentTarget.value))} />
           <span class="se-color-label">Outline</span>
         </div>
         <div class="se-color-group">
-          <input
-            type="color"
-            value={assColorToHex(style.backColor || '&H00000000')}
-            onInput={(e: any) => onChange('backColor', hexToAssColor(e.currentTarget.value))}
-          />
+          <input type="color" value={assColorToHex(style.backColor || '&H00000000')} onInput={(e: any) => onChange('backColor', hexToAssColor(e.currentTarget.value))} />
           <span class="se-color-label">Shadow</span>
         </div>
       </div>
