@@ -28,51 +28,115 @@ function assColorToCss(color: string): string {
   return color || '#FFFFFF';
 }
 
-function assTextToHtml(text: string): string {
-  const openTags: string[] = [];
+interface InlineState {
+  color: string;
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
+  strikeout: boolean;
+  fontName: string;
+  fontSize: number;
+}
 
-  const closeAll = (): string => {
-    const out = openTags.reverse().join('');
-    openTags.length = 0;
-    return out;
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function isDrawingPath(text: string): boolean {
+  const t = text.trim();
+  if (!t || t.length < 15) return false;
+  return /^[mlb\s\d\.\-,]+$/.test(t);
+}
+
+function assContentToHtml(content: string): string {
+  if (!content) return '';
+
+  const state: InlineState = {
+    color: '', bold: false, italic: false, underline: false, strikeout: false, fontName: '', fontSize: 0,
   };
+  const stack: string[] = [];
+  let result = '';
 
-  let result = text
-    .replace(/\\N/g, '\n')
-    .replace(/\\n/g, ' ')
-    .replace(/\\h/g, ' ');
+  function flushSpan(): string {
+    const parts: string[] = [];
+    if (state.color) parts.push(`color:${state.color}`);
+    if (state.bold) parts.push('font-weight:700');
+    if (state.italic) parts.push('font-style:italic');
+    const deco: string[] = [];
+    if (state.underline) deco.push('underline');
+    if (state.strikeout) deco.push('line-through');
+    if (deco.length) parts.push(`text-decoration:${deco.join(' ')}`);
+    if (state.fontName) parts.push(`font-family:'${state.fontName}',sans-serif`);
+    if (state.fontSize) parts.push(`font-size:${Math.min(state.fontSize, 72)}px`);
+    if (parts.length === 0) return '';
+    stack.push('</span>');
+    return `<span style="${parts.join(';')}">`;
+  }
 
-  result = result.replace(/\{[^}]*\}/g, (tag) => {
-    const inner = tag.slice(1, -1);
-    if (!inner.startsWith('\\')) return tag;
+  function closeAll(): string {
+    const out: string[] = [];
+    while (stack.length) out.push(stack.pop()!);
+    return out.join('');
+  }
 
-    if (/^\\[bius]1$/.test(inner) || /^\\[bius]-1$/.test(inner)) {
-      const t = inner[1];
-      if (t === 'b') { openTags.push('</b>'); return '<b>'; }
-      if (t === 'i') { openTags.push('</i>'); return '<i>'; }
-      if (t === 'u') { openTags.push('</u>'); return '<u>'; }
-      if (t === 's') { openTags.push('</s>'); return '<s>'; }
+  function parseTags(inner: string): void {
+    if (!inner.startsWith('\\')) return;
+    let pos = 0;
+    while (pos < inner.length) {
+      const bs = inner.indexOf('\\', pos);
+      if (bs < 0) break;
+      let end = bs + 1;
+      while (end < inner.length) {
+        const ch = inner[end];
+        if (ch === '\\') break;
+        if (ch === '(') { const c = inner.indexOf(')', end); end = c >= 0 ? c + 1 : inner.length; }
+        else if (ch === '&') { const c = inner.indexOf('&', end + 1); end = c >= 0 ? c + 1 : inner.length; }
+        else end++;
+      }
+      const raw = inner.slice(bs, end);
+      pos = end;
+      const name = raw.match(/\\([a-z0-9]+)/i)?.[1]?.toLowerCase();
+      if (!name) continue;
+      const arg = raw.slice(raw.indexOf(name) + name.length);
+
+      switch (name) {
+        case 'c':
+        case '1c': {
+          const m = arg.match(/&H([0-9A-Fa-f]{6,8})/);
+          if (m) {
+            const hex = m[1];
+            state.color = assColorToCss('&H' + (hex.length === 6 ? '00' : '') + hex);
+          } else {
+            state.color = '';
+          }
+          break;
+        }
+        case 'b': state.bold = arg !== '0'; break;
+        case 'i': state.italic = arg !== '0'; break;
+        case 'u': state.underline = arg !== '0'; break;
+        case 's': state.strikeout = arg !== '0'; break;
+        case 'fn': state.fontName = arg; break;
+        case 'fs': state.fontSize = parseInt(arg, 10) || 0; break;
+      }
     }
-    if (/^\\[bius]0$/.test(inner)) {
-      const t = inner[1];
-      if (openTags.length > 0) return openTags.pop()!;
-    }
+  }
 
-    const cMatch = inner.match(/^\\c&H([0-9A-Fa-f]{6,8})&?$/);
-    if (cMatch) {
-      const hex = cMatch[1];
-      const prefix = hex.length === 8 ? '' : '00';
-      const css = assColorToCss(`&H${prefix}${hex}`);
-      openTags.push('</span>');
-      return `<span style="color:${css}">`;
-    }
+  const segments = content.split(/(\{[^}]*\})/);
 
-    return '';
-  });
+  for (const seg of segments) {
+    if (seg.startsWith('{') && seg.endsWith('}')) {
+      parseTags(seg.slice(1, -1));
+    } else {
+      let text = seg.replace(/\\N/g, '\n').replace(/\\n/g, ' ').replace(/\\h/g, '\u00A0');
+      if (!text || isDrawingPath(text)) continue;
+      result += flushSpan();
+      result += escapeHtml(text);
+    }
+  }
 
   result += closeAll();
   result = result.replace(/\n/g, '<br>');
-  return result;
+  return result || '(empty)';
 }
 
 function msToStr(ms: number): string {
@@ -95,7 +159,6 @@ function buildTextShadows(style: StyleDefinition | undefined): string[] {
   const ow = style?.outline ?? 0;
   const sc = style?.backColor ? assColorToCss(style.backColor) : '#000000';
   const sd = style?.shadow ?? 0;
-
   if (ow > 0) {
     for (let dx = -ow; dx <= ow; dx++) {
       for (let dy = -ow; dy <= ow; dy++) {
@@ -105,9 +168,7 @@ function buildTextShadows(style: StyleDefinition | undefined): string[] {
       }
     }
   }
-  if (sd > 0) {
-    shadows.push(`${sd}px ${sd}px ${sd}px ${sc}`);
-  }
+  if (sd > 0) shadows.push(`${sd}px ${sd}px ${sd}px ${sc}`);
   return shadows;
 }
 
@@ -120,7 +181,8 @@ export function PreviewPanel({ universal, selectedIndex }: Props) {
     ? universal.styles.find((s) => s.name === cue.style)
     : undefined;
 
-  const html = cue ? assTextToHtml(cue.text) : '';
+  const content = cue?.content || cue?.text || '';
+  const html = assContentToHtml(content);
   const shadows = buildTextShadows(style);
 
   return (

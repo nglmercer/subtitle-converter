@@ -13,7 +13,7 @@ Style: CenterGreen,Arial,24,&H0000FF00,&H000000FF,&HFF000000,&H00000000,0,0,0,0,
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:03.00,0:00:04.00,CenterGreen,,0,0,10,,{\pos(320,180)}Segunda línea {\c&H00FF00&}verde`
+Dialogue: 0,0:00:03.00,0:00:04.00,CenterGreen,,0,0,10,,{\\pos(320,180)}Segunda línea {\\c&H00FF00&}verde`
 
 describe('assToUniversal() parseo de overrides', () => {
   it('preserva overrides en content y limpia text', () => {
@@ -23,8 +23,8 @@ describe('assToUniversal() parseo de overrides', () => {
     expect(cue.text.includes('{')).toBe(false)
     expect(cue.text.includes('Segunda línea')).toBe(true)
     expect(cue.text.includes('verde')).toBe(true)
-    expect(cue.content.includes('\pos(320,180)')).toBe(true)
-    expect(cue.content.includes('\c&H00FF00&')).toBe(true)
+    expect(cue.content.includes('\\pos(320,180)')).toBe(true)
+    expect(cue.content.includes('\\c&H00FF00&')).toBe(true)
   })
 
   it('conserva metadata y estilos necesarios para posicionamiento', () => {

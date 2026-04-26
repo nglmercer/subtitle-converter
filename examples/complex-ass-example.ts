@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
-import { assToUniversal, universalToAss } from "../src/formats/ass.ts";
-import { parseToUniversal, formatFromUniversal, analyze } from "../src/index.ts";
+import { assToUniversal } from "../src/formats/ass.ts";
+import { formatFromUniversal, analyze } from "../src/index.ts";
 
 const assFilePath = "./tests/fixtures/complex-rezero.ass";
 const outputDir = "./examples/output";
@@ -30,31 +30,21 @@ universal.cues.slice(0, 5).forEach((cue, i) => {
   console.log(`   [${start}s - ${end}s] ${actor}: ${cue.text.substring(0, 50)}...`);
 });
 
-console.log("\n4. Convert to SRT:");
+console.log("\n4. Convert to SRT (preserving original ASS text):");
 const srt = formatFromUniversal(universal, "srt");
 writeFileSync(`${outputDir}/complex-rezero.srt`, srt, "utf-8");
 console.log(`   Saved to ${outputDir}/complex-rezero.srt`);
 
-console.log("\n5. Convert to VTT:");
+console.log("\n5. Convert to VTT (preserving original ASS text):");
 const vtt = formatFromUniversal(universal, "vtt");
 writeFileSync(`${outputDir}/complex-rezero.vtt`, vtt, "utf-8");
 console.log(`   Saved to ${outputDir}/complex-rezero.vtt`);
 
-console.log("\n6. Convert to ASS (round-trip):");
-const convertedAss = universalToAss(universal);
-writeFileSync(`${outputDir}/complex-rezero-roundtrip.ass`, convertedAss, "utf-8");
-console.log(`   Saved to ${outputDir}/complex-rezero-roundtrip.ass`);
-
-console.log("\n7. Round-trip verification:");
-const originalCues = assContent.split("\nDialogue:").length - 1;
-const convertedCues = convertedAss.split("\nDialogue:").length - 1;
-console.log(`   Original cues: ${originalCues}`);
-console.log(`   Converted cues: ${convertedCues}`);
-console.log(`   Match: ${originalCues === convertedCues ? "✓ YES" : "✗ NO"}`);
-
-console.log("\n8. Style information:");
+console.log("\n6. Style information (read-only, never modifies ASS):");
 universal.styles.forEach(style => {
   console.log(`   - ${style.name}: ${style.fontName} ${style.fontSize}px, alignment: ${style.alignment}`);
 });
 
 console.log("\n=== Done ===");
+console.log("   Original ASS file was parsed and analyzed without modification.");
+console.log("   Only SRT and VTT output files were created.");

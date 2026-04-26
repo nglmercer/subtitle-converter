@@ -795,8 +795,8 @@ function cleanAssText(assText: string): string {
   // Remove ASS formatting tags
   let cleanText = assText;
 
-  // Remove basic ASS tags
-  cleanText = cleanText.replace(/\{[^}]*\}/g, "");
+  // Remove ASS formatting tags only (start with \ or =), preserve literal {text}
+  cleanText = cleanText.replace(/\{(?:\\|=)[^}]*\}/g, "");
 
   // Convert ASS line breaks to regular newlines
   // Use String.fromCharCode to avoid bundler issues with literal newlines
