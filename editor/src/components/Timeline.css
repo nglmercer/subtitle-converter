@@ -1,17 +1,20 @@
 .timeline-container {
   flex-shrink: 0;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-deep);
+  border-bottom: 1px solid var(--border-glass);
   overflow-x: auto;
   overflow-y: hidden;
   position: relative;
+  scrollbar-width: thin;
 }
 
 .timeline-header {
   padding: 0;
   position: relative;
-  height: 30px;
+  height: 32px;
   min-width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .timeline-ruler {
@@ -30,9 +33,9 @@
 
 .timeline-tick-minor {
   width: 1px;
-  height: 6px;
-  background: var(--border);
-  opacity: 0.35;
+  height: 8px;
+  background: var(--text-dim);
+  opacity: 0.2;
   top: auto;
   bottom: 0;
 }
@@ -47,21 +50,23 @@
   bottom: 0;
   left: 50%;
   width: 1px;
-  height: 12px;
-  background: var(--border);
+  height: 14px;
+  background: var(--text-dim);
+  opacity: 0.4;
   transform: translateX(-50%);
 }
 
 .timeline-tick-label {
   position: absolute;
-  top: 2px;
+  top: 4px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 10px;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   white-space: nowrap;
-  font-family: var(--font-mono);
-  opacity: 0.85;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 /* ─── Selected time flag ─── */
@@ -71,9 +76,9 @@
   bottom: 0;
   width: 2px;
   background: var(--accent);
-  z-index: 5;
+  z-index: 10;
   pointer-events: none;
-  opacity: 0.8;
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .timeline-now-flag::after {
@@ -82,67 +87,96 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  border: 5px solid transparent;
+  border: 6px solid transparent;
   border-top-color: var(--accent);
 }
 
 .timeline-now-label {
   position: absolute;
-  top: 16px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 9px;
-  font-family: var(--font-mono);
-  color: var(--accent);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: white;
   white-space: nowrap;
-  background: rgba(88, 166, 255, 0.15);
-  padding: 0 5px;
-  border-radius: 3px;
+  background: var(--accent);
+  padding: 1px 6px;
+  border-radius: 4px;
   pointer-events: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* ─── Timeline Body ─── */
+.timeline-body {
+  position: relative;
+  height: 64px;
+  min-width: 100%;
+  cursor: crosshair;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100px 100%, 20px 100%;
 }
 
 /* ─── Cue blocks ─── */
-.timeline-body {
-  position: relative;
-  height: 48px;
-  min-width: 100%;
-  cursor: pointer;
-}
-
 .timeline-cue {
   position: absolute;
-  top: 6px;
-  height: 36px;
+  top: 12px;
+  height: 40px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   cursor: pointer;
-  transition: opacity 0.15s, box-shadow 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 4px;
+  min-width: 6px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-cue::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 .timeline-cue:hover {
-  opacity: 0.9;
-  box-shadow: 0 0 8px rgba(88, 166, 255, 0.4);
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+  z-index: 5;
 }
 
 .timeline-cue.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent);
-  z-index: 2;
+  border: 2px solid white;
+  transform: scaleY(1.1);
+  box-shadow: 0 0 20px var(--accent-glow);
+  z-index: 6;
 }
 
 .timeline-cue-label {
   font-size: 10px;
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  padding: 0 4px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  padding: 0 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
   text-align: center;
+  pointer-events: none;
 }
+
+.timeline-cue-grouped {
+  opacity: 0.85;
+}
+
