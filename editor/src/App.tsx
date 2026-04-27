@@ -34,6 +34,7 @@ export function App() {
   const [exportFormat, setExportFormat] = useState<SubtitleFormat>("srt");
   const [exported, setExported] = useState<string>("");
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [activeTab, setActiveTab] = useState<'editor' | 'styles' | 'actors' | 'analysis'>('editor');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((name: string, text: string) => {
@@ -51,6 +52,7 @@ export function App() {
     const a = analyze(text, fmt);
     console.log(u, a);
     setAnalysis(a);
+    setActiveTab('editor');
   }, []);
 
   const handleCueUpdate = useCallback(
@@ -153,6 +155,11 @@ export function App() {
         setSelectedIndex((i) => Math.max(i - 1, 0));
         return;
       }
+      // Tab switching shortcuts
+      if (mod && e.key === "1") { e.preventDefault(); setActiveTab('editor'); }
+      if (mod && e.key === "2") { e.preventDefault(); setActiveTab('styles'); }
+      if (mod && e.key === "3") { e.preventDefault(); setActiveTab('actors'); }
+      if (mod && e.key === "4") { e.preventDefault(); setActiveTab('analysis'); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -199,48 +206,53 @@ export function App() {
         <div class="header-right">
           {fileName && (
             <>
-              <span class="file-badge">{fileName}</span>
-              <span class="format-badge">{detectedFormat.toUpperCase()}</span>
-              {analysis && <AnalysisPanel analysis={analysis} />}
-              <select
-                class="export-select"
-                value={exportFormat}
-                onChange={(e: JSX.TargetedEvent<HTMLSelectElement>) => setExportFormat(e.currentTarget.value as SubtitleFormat)}
-              >
-                <option value="srt">SRT</option>
-                <option value="vtt">VTT</option>
-                <option value="ass">ASS</option>
-                <option value="json">JSON</option>
-                <option value="csv">CSV</option>
-              </select>
-              <button class="btn btn-export" onClick={handleExport}>
-                Export
-              </button>
+              <div class="file-info">
+                <span class="file-name">{fileName}</span>
+                <span class="format-badge">{detectedFormat.toUpperCase()}</span>
+              </div>
+              
+              <div class="export-group">
+                <select
+                  class="export-select"
+                  value={exportFormat}
+                  onChange={(e: JSX.TargetedEvent<HTMLSelectElement>) => setExportFormat(e.currentTarget.value as SubtitleFormat)}
+                >
+                  <option value="srt">SRT</option>
+                  <option value="vtt">VTT</option>
+                  <option value="ass">ASS</option>
+                  <option value="json">JSON</option>
+                  <option value="csv">CSV</option>
+                </select>
+                <button class="btn btn-primary btn-export" onClick={handleExport}>
+                  Export
+                </button>
+              </div>
+
               <div class="shortcuts-tip">
                 <button
-                  class="btn btn-sm btn-secondary"
+                  class="btn-icon-circle"
                   onClick={() => setShowShortcuts((p) => !p)}
                   title="Keyboard shortcuts"
                 >
-                  ⌨
+                  <span class="icon">⌨</span>
                 </button>
                 {showShortcuts && (
                   <div class="shortcuts-popup">
+                    <div class="shortcuts-header">Shortcuts</div>
                     <div class="shortcuts-row">
-                      <kbd>↑</kbd>
-                      <kbd>↓</kbd> <span>Navigate cues</span>
+                      <kbd>↑</kbd> <kbd>↓</kbd> <span>Navigate cues</span>
                     </div>
                     <div class="shortcuts-row">
-                      <kbd>⌘E</kbd> / <kbd>Ctrl+E</kbd> <span>Export</span>
+                      <kbd>⌘1-4</kbd> <span>Switch tabs</span>
                     </div>
                     <div class="shortcuts-row">
-                      <kbd>⌘F</kbd> / <kbd>Ctrl+F</kbd> <span>Search</span>
+                      <kbd>⌘E</kbd> <span>Export</span>
                     </div>
                     <div class="shortcuts-row">
-                      <kbd>Esc</kbd> <span>Clear search/export</span>
+                      <kbd>⌘F</kbd> <span>Search</span>
                     </div>
                     <div class="shortcuts-row">
-                      <kbd>?</kbd> <span>Toggle shortcuts</span>
+                      <kbd>Esc</kbd> <span>Clear/Close</span>
                     </div>
                   </div>
                 )}
@@ -252,9 +264,12 @@ export function App() {
 
       {!universal ? (
         <div class="empty-state">
-          <div class="empty-icon">🎬</div>
-          <h2>Drop a subtitle file here</h2>
-          <p>Supports SRT, VTT, ASS, JSON, CSV</p>
+          <div class="empty-glass">
+            <div class="empty-icon">🎬</div>
+            <h2>Ready to Edit</h2>
+            <p>Drop a subtitle file here to begin</p>
+            <div class="supported-formats">SRT • VTT • ASS • JSON • CSV</div>
+          </div>
         </div>
       ) : (
         <>
@@ -268,16 +283,20 @@ export function App() {
           <div class="main-content">
             <div class="panel panel-left">
               <div class="panel-header">
-                <h3>Cues</h3>
-                <input
-                  class="search-input"
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setSearchQuery(e.currentTarget.value)}
-                />
-                <span class="cue-count">{universal.cues.length}</span>
+                <div class="search-container">
+                  <span class="search-icon">🔍</span>
+                  <input
+                    class="search-input"
+                    ref={searchRef}
+                    type="text"
+                    placeholder="Search cues..."
+                    value={searchQuery}
+                    onInput={(e: JSX.TargetedEvent<HTMLInputElement>) => setSearchQuery(e.currentTarget.value)}
+                  />
+                  {searchQuery && (
+                    <button class="search-clear" onClick={() => setSearchQuery("")}>×</button>
+                  )}
+                </div>
               </div>
               {(actors.length > 0 || styles.length > 0) && (
                 <div class="filter-row">
@@ -318,53 +337,114 @@ export function App() {
                 selectedIndex={selectedIndex}
                 onSelect={setSelectedIndex}
               />
+              <div class="panel-footer">
+                <span class="cue-count-badge">{filteredCues.length} / {universal.cues.length} Cues</span>
+              </div>
             </div>
+
             <div class="panel panel-right">
-              {selectedCue && (
-                <CueEditor
-                  cue={selectedCue}
-                  index={selectedIndex}
-                  onUpdate={handleCueUpdate}
-                />
-              )}
-              {universal && (
-                <PreviewPanel
-                  universal={universal}
-                  selectedIndex={selectedIndex}
-                />
-              )}
-              {universal && universal.styles.length > 0 && (
-                <StyleEditor
-                  styles={universal.styles}
-                  onUpdate={handleStyleUpdate}
-                />
-              )}
-              {universal && (
-                <ActorManager
-                  universal={universal}
-                  onActorRename={handleActorRename}
-                />
-              )}
+              <nav class="tabs-nav">
+                <button 
+                  class={`tab-btn ${activeTab === 'editor' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('editor')}
+                >
+                  <span class="tab-icon">✎</span> Editor
+                </button>
+                <button 
+                  class={`tab-btn ${activeTab === 'styles' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('styles')}
+                >
+                  <span class="tab-icon">🎨</span> Styles
+                </button>
+                <button 
+                  class={`tab-btn ${activeTab === 'actors' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('actors')}
+                >
+                  <span class="tab-icon">👥</span> Actors
+                </button>
+                <button 
+                  class={`tab-btn ${activeTab === 'analysis' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('analysis')}
+                >
+                  <span class="tab-icon">📊</span> Analysis
+                </button>
+              </nav>
+
+              <div class="tab-content">
+                {activeTab === 'editor' && (
+                  <div class="editor-tab">
+                    {selectedCue && (
+                      <CueEditor
+                        cue={selectedCue}
+                        index={selectedIndex}
+                        onUpdate={handleCueUpdate}
+                      />
+                    )}
+                    {universal && (
+                      <PreviewPanel
+                        universal={universal}
+                        selectedIndex={selectedIndex}
+                      />
+                    )}
+                  </div>
+                )}
+                
+                {activeTab === 'styles' && (
+                  <div class="styles-tab">
+                    {universal && universal.styles.length > 0 ? (
+                      <StyleEditor
+                        styles={universal.styles}
+                        onUpdate={handleStyleUpdate}
+                      />
+                    ) : (
+                      <div class="tab-empty">No styles found in this file</div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'actors' && (
+                  <div class="actors-tab">
+                    {universal && (
+                      <ActorManager
+                        universal={universal}
+                        onActorRename={handleActorRename}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'analysis' && (
+                  <div class="analysis-tab">
+                    {analysis ? (
+                      <AnalysisPanel analysis={analysis} />
+                    ) : (
+                      <div class="tab-empty">Analysis not available</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {exported && (
-            <div class="export-panel">
-              <div class="export-header">
-                <h3>Exported {exportFormat.toUpperCase()}</h3>
-                <div class="export-actions">
-                  <button class="btn btn-sm" onClick={handleDownload}>
-                    Download
-                  </button>
-                  <button
-                    class="btn btn-sm btn-secondary"
-                    onClick={() => setExported("")}
-                  >
-                    Close
-                  </button>
+            <div class="export-overlay">
+              <div class="export-modal">
+                <div class="export-header">
+                  <h3>Export Preview ({exportFormat.toUpperCase()})</h3>
+                  <div class="export-actions">
+                    <button class="btn btn-primary" onClick={handleDownload}>
+                      Download File
+                    </button>
+                    <button
+                      class="btn btn-secondary"
+                      onClick={() => setExported("")}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
+                <pre class="export-content">{exported}</pre>
               </div>
-              <pre class="export-content">{exported}</pre>
             </div>
           )}
         </>

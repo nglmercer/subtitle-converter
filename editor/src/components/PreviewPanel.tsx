@@ -67,7 +67,7 @@ function assContentToHtml(content: string): string {
     if (state.strikeout) deco.push('line-through');
     if (deco.length) parts.push(`text-decoration:${deco.join(' ')}`);
     if (state.fontName) parts.push(`font-family:'${state.fontName}',sans-serif`);
-    if (state.fontSize) parts.push(`font-size:${Math.min(state.fontSize, 72)}px`);
+    if (state.fontSize) parts.push(`font-size:${Math.min(state.fontSize, 120)}px`);
     if (parts.length === 0) return '';
     stack.push('</span>');
     return `<span style="${parts.join(';')}">`;
@@ -208,7 +208,7 @@ export function PreviewPanel({ universal, selectedIndex }: Props) {
             class="preview-cue-overlay"
             style={{
               fontFamily: style ? `${style.fontName || 'Arial'}, sans-serif` : 'Arial, sans-serif',
-              fontSize: style?.fontSize ? `${Math.min(style.fontSize, 36)}px` : '24px',
+              fontSize: style?.fontSize ? `${Math.min(style.fontSize, 120)}px` : '24px',
               color: style?.primaryColor ? assColorToCss(style.primaryColor) : '#FFFFFF',
               fontWeight: style?.bold ? '700' : '400',
               fontStyle: style?.italic ? 'italic' : 'normal',

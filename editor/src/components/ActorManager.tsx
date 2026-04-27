@@ -9,7 +9,6 @@ interface Props {
 }
 
 export function ActorManager({ universal, onActorRename }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [modalActor, setModalActor] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
@@ -50,22 +49,15 @@ export function ActorManager({ universal, onActorRename }: Props) {
 
   return (
     <div class="actor-manager">
-      <div class="am-header" onClick={() => setExpanded(!expanded)}>
-        <h3>Actors ({actors.length})</h3>
-        <span class="am-toggle">{expanded ? '▼' : '▶'}</span>
+      <div class="am-body">
+        {actors.map((actor) => (
+          <div key={actor.name} class="am-row">
+            <span class="am-name">{actor.name}</span>
+            <span class="am-count">{actor.count}</span>
+            <button class="btn-icon" onClick={() => handleOpenRename(actor.name)} title="Rename">✎</button>
+          </div>
+        ))}
       </div>
-
-      {expanded && (
-        <div class="am-body">
-          {actors.map((actor) => (
-            <div key={actor.name} class="am-row">
-              <span class="am-name">{actor.name}</span>
-              <span class="am-count">{actor.count}</span>
-              <button class="btn-icon" onClick={() => handleOpenRename(actor.name)} title="Rename">✎</button>
-            </div>
-          ))}
-        </div>
-      )}
 
       <Modal isOpen={modalActor !== null} onClose={() => setModalActor(null)} title={`Rename: ${modalActor || ''}`}>
         <>

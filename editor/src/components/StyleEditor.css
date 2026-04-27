@@ -1,276 +1,211 @@
 .style-editor {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .se-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  padding: 12px 20px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  user-select: none;
-  border-bottom: 1px solid var(--border);
 }
 
 .se-header h3 {
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.se-toggle {
-  font-size: 10px;
-  color: var(--text-secondary);
+  font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .se-body {
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
 }
 
-/* ─── Style Card ─── */
-
 .se-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: all 0.2s;
 }
 
 .se-card:hover {
+  transform: translateY(-2px);
   border-color: var(--accent);
-  background: var(--bg-tertiary);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 
 .se-card-preview-area {
-  width: 40px;
-  height: 32px;
-  border-radius: var(--radius-sm);
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
+  background: #000;
+  position: relative;
 }
 
 .se-card-sample {
-  line-height: 1;
-  pointer-events: none;
+  line-height: 1.1;
+  text-align: center;
 }
 
 .se-card-info {
-  flex: 1;
-  min-width: 0;
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .se-card-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .se-card-meta {
-  font-size: 10px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: var(--text-dim);
 }
 
 .se-card-badge {
-  font-size: 14px;
-  line-height: 1;
-  opacity: 0.5;
-  flex-shrink: 0;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--accent);
 }
 
 /* ─── Modal Layout ─── */
-
 .se-modal-layout {
-  display: flex;
-  gap: 16px;
-  min-height: 360px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
 }
-
-.se-modal-fields {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.se-modal-preview {
-  width: 240px;
-  flex-shrink: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.se-preview-header {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-  padding: 6px 10px;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border);
-}
-
-.se-preview-screen {
-  flex: 1;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  gap: 8px;
-  min-height: 180px;
-}
-
-.se-preview-text {
-  text-align: center;
-  line-height: 1.3;
-  max-width: 100%;
-  word-break: break-word;
-}
-
-.se-preview-subtext {
-  font-size: 11px;
-  opacity: 0.5;
-  text-align: center;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  max-width: 100%;
-  word-break: break-word;
-}
-
-/* ─── Field Sections ─── */
 
 .se-field-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  background: rgba(255,255,255,0.02);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
 }
 
 .se-field-section-title {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-  padding-bottom: 2px;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
 .se-field-row {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-/* ─── Individual Field ─── */
-
 .se-field {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 60px;
+  gap: 6px;
 }
 
 .se-field-label {
-  font-size: 9px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-secondary);
 }
 
 .se-field input[type="text"],
 .se-field input[type="number"],
 .se-field select {
-  padding: 4px 6px;
-  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
-  background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 11px;
-  font-family: var(--font-sans);
+  padding: 8px 12px;
+  font-size: 0.9rem;
   outline: none;
-  width: 100%;
 }
 
-.se-field input:focus,
-.se-field select:focus {
+.se-field input:focus, .se-field select:focus {
   border-color: var(--accent);
 }
 
-.se-field input[type="checkbox"] {
-  accent-color: var(--accent);
-  align-self: flex-start;
-  margin-top: 4px;
-}
-
-/* ─── Color Picker Field ─── */
-
 .se-color-field {
-  min-width: 100px;
+  flex: 1;
 }
 
 .se-color-picker-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  background: rgba(0,0,0,0.2);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
 }
 
 .se-color-picker-wrap input[type="color"] {
-  width: 28px;
+  width: 24px;
   height: 24px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border: none;
   background: none;
   cursor: pointer;
 }
 
 .se-color-hex {
-  font-family: var(--font-mono);
-  font-size: 10px;
+  font-family: monospace;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
-/* ─── Actions ─── */
-
-.se-modal-actions {
+.se-modal-preview {
+  background: #000;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
   display: flex;
-  justify-content: flex-end;
-  padding-top: 4px;
+  flex-direction: column;
 }
 
-/* ─── Modal width override ─── */
-.modal-panel:has(.se-modal-layout) {
-  max-width: 640px;
+.se-preview-header {
+  padding: 10px;
+  background: var(--bg-glass);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.se-preview-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.se-preview-text {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.se-preview-subtext {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
 }

@@ -87,7 +87,6 @@ const ALIGN_ICONS: Record<number, string> = {
 };
 
 export function StyleEditor({ styles, onUpdate }: Props) {
-  const [expanded, setExpanded] = useState(false);
   const [editingStyle, setEditingStyle] = useState<StyleDefinition | null>(null);
   const [modalDraft, setModalDraft] = useState<Partial<StyleDefinition>>({});
 
@@ -114,18 +113,11 @@ export function StyleEditor({ styles, onUpdate }: Props) {
 
   return (
     <div class="style-editor">
-      <div class="se-header" onClick={() => setExpanded(!expanded)}>
-        <h3>Styles ({styles.length})</h3>
-        <span class="se-toggle">{expanded ? '▼' : '▶'}</span>
+      <div class="se-body">
+        {styles.map((s) => (
+          <StyleCard key={s.name} style={s} onEdit={() => openModal(s)} />
+        ))}
       </div>
-
-      {expanded && (
-        <div class="se-body">
-          {styles.map((s) => (
-            <StyleCard key={s.name} style={s} onEdit={() => openModal(s)} />
-          ))}
-        </div>
-      )}
 
       <Modal isOpen={editingStyle !== null} onClose={() => setEditingStyle(null)} title={`Edit Style: ${editingStyle?.name || ''}`}>
         {currentStyle ? (
@@ -240,7 +232,7 @@ export function StyleEditor({ styles, onUpdate }: Props) {
                   class="se-preview-text"
                   style={{
                     fontFamily: `${currentStyle.fontName || 'Arial'}, sans-serif`,
-                    fontSize: `${Math.min(currentStyle.fontSize ?? 20, 48)}px`,
+                    fontSize: `${Math.min(currentStyle.fontSize ?? 20, 120)}px`,
                     color: assColorToCss(currentStyle.primaryColor || '&H00FFFFFF'),
                     fontWeight: currentStyle.bold ? '700' : '400',
                     fontStyle: currentStyle.italic ? 'italic' : 'normal',
