@@ -91,6 +91,12 @@
   gap: 24px;
 }
 
+@media (max-width: 768px) {
+  .se-modal-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .se-field-section {
   background: rgba(255,255,255,0.02);
   padding: 16px;

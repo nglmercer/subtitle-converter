@@ -45,6 +45,7 @@ export function App() {
   const [exported, setExported] = useState<string>("");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'styles' | 'actors' | 'analysis'>('editor');
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const handleFile = useCallback((name: string, text: string) => {
@@ -210,9 +211,27 @@ export function App() {
     <div class="app">
       <header class="header">
         <div class="header-left">
-          <h1 class="logo">Subconv Editor</h1>
+          <h1 class="logo">Subconv</h1>
           <FileDrop onFile={handleFile} />
         </div>
+        
+        {universal && (
+          <div class="mobile-nav">
+            <button 
+              class={`mobile-nav-btn ${mobileView === 'list' ? 'active' : ''}`}
+              onClick={() => setMobileView('list')}
+            >
+              List
+            </button>
+            <button 
+              class={`mobile-nav-btn ${mobileView === 'detail' ? 'active' : ''}`}
+              onClick={() => setMobileView('detail')}
+            >
+              Detail
+            </button>
+          </div>
+        )}
+
         <div class="header-right">
           {fileName && (
             <>
@@ -287,10 +306,13 @@ export function App() {
             cues={universal.cues}
             totalMs={totalMs}
             selectedIndex={selectedIndex}
-            onSelect={setSelectedIndex}
+            onSelect={(i) => {
+              setSelectedIndex(i);
+              if (window.innerWidth < 768) setMobileView('detail');
+            }}
           />
 
-          <div class="main-content">
+          <div class={`main-content ${mobileView}`}>
             <div class="panel panel-left">
               <div class="panel-header">
                 <div class="search-container">
@@ -345,7 +367,10 @@ export function App() {
               <SubtitleList
                 cues={filteredCues}
                 selectedIndex={selectedIndex}
-                onSelect={setSelectedIndex}
+                onSelect={(i) => {
+                  setSelectedIndex(i);
+                  if (window.innerWidth < 768) setMobileView('detail');
+                }}
               />
               <div class="panel-footer">
                 <span class="cue-count-badge">{filteredCues.length} / {universal.cues.length} Cues</span>

@@ -120,6 +120,13 @@
   margin-bottom: 20px;
 }
 
+@media (max-width: 768px) {
+  .cue-meta-row, .cue-timing {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 .cue-info {
   display: flex;
   gap: 20px;
