@@ -380,12 +380,6 @@ export function App() {
                         onUpdate={handleCueUpdate}
                       />
                     )}
-                    {universal && (
-                      <PreviewPanel
-                        universal={universal}
-                        selectedIndex={selectedIndex}
-                      />
-                    )}
                   </div>
                 )}
                 
@@ -423,6 +417,15 @@ export function App() {
                   </div>
                 )}
               </div>
+
+              {universal && (
+                <div class="persistent-preview">
+                  <PreviewPanel
+                    universal={universal}
+                    selectedIndex={selectedIndex}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

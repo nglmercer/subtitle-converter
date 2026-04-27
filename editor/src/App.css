@@ -5,34 +5,38 @@
     --bg-glass-heavy: rgba(15, 15, 20, 0.95);
     --border-glass: rgba(255, 255, 255, 0.08);
     --border-glass-bright: rgba(255, 255, 255, 0.15);
-    
+
     --accent: #6366f1;
     --accent-glow: rgba(99, 102, 241, 0.4);
     --accent-gradient: linear-gradient(135deg, #6366f1, #a855f7);
-    
+
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-dim: #64748b;
-    
+
     --danger: #ef4444;
     --success: #10b981;
     --warning: #f59e0b;
-    
+
     --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
-    
+
     --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-html, body, #app {
+html,
+body,
+#app {
     height: 100%;
     background: var(--bg-deep);
     color: var(--text-primary);
@@ -66,11 +70,13 @@ html, body, #app {
     font-weight: 800;
     background: var(--accent-gradient);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.02em;
 }
 
-.header-left, .header-right {
+.header-left,
+.header-right {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -81,7 +87,7 @@ html, body, #app {
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-glass);
 }
@@ -132,13 +138,13 @@ html, body, #app {
 }
 
 .btn-secondary {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
     border-color: var(--border-glass);
 }
 
 .btn-secondary:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .btn-icon-circle {
@@ -148,7 +154,7 @@ html, body, #app {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-glass);
     color: var(--text-secondary);
     cursor: pointer;
@@ -156,7 +162,7 @@ html, body, #app {
 }
 
 .btn-icon-circle:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     border-color: var(--border-glass-bright);
 }
@@ -179,7 +185,7 @@ html, body, #app {
     text-align: center;
     max-width: 480px;
     width: 100%;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
 }
 
 .empty-icon {
@@ -258,7 +264,7 @@ html, body, #app {
 .search-input {
     width: 100%;
     padding: 10px 36px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-md);
     color: var(--text-primary);
@@ -268,7 +274,7 @@ html, body, #app {
 }
 
 .search-input:focus {
-    background: rgba(255,255,255,0.06);
+    background: rgba(255, 255, 255, 0.06);
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
@@ -287,7 +293,7 @@ html, body, #app {
     padding: 12px 16px;
     display: flex;
     gap: 8px;
-    background: rgba(255,255,255,0.01);
+    background: rgba(255, 255, 255, 0.01);
     border-bottom: 1px solid var(--border-glass);
 }
 
@@ -347,7 +353,7 @@ html, body, #app {
 
 .tab-btn:hover {
     color: var(--text-primary);
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .tab-btn.active {
@@ -378,6 +384,12 @@ html, body, #app {
     background: var(--bg-surface);
 }
 
+.persistent-preview {
+    padding: 0 24px 24px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-glass);
+}
+
 .tab-empty {
     height: 100%;
     display: flex;
@@ -403,7 +415,7 @@ html, body, #app {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -421,7 +433,7 @@ html, body, #app {
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 
@@ -446,7 +458,7 @@ html, body, #app {
     font-size: 0.85rem;
     line-height: 1.6;
     color: var(--text-secondary);
-    background: rgba(0,0,0,0.2);
+    background: rgba(0, 0, 0, 0.2);
 }
 
 /* ─── Shortcuts Popup ─── */
@@ -461,7 +473,7 @@ html, body, #app {
     border-radius: var(--radius-md);
     padding: 20px;
     width: 280px;
-    box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
 }
 
 .shortcuts-header {
@@ -479,11 +491,11 @@ html, body, #app {
     justify-content: space-between;
     padding: 8px 0;
     font-size: 0.85rem;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .shortcuts-row kbd {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: monospace;
