@@ -414,46 +414,12 @@ body,
     margin: 0 auto;
 }
 
-/* ─── Export Overlay ─── */
-.export-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 40px;
-}
-
-.export-modal {
-    background: var(--bg-glass-heavy);
-    border: 1px solid var(--border-glass-bright);
-    border-radius: var(--radius-lg);
-    width: 100%;
-    max-width: 900px;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.5);
-    overflow: hidden;
-}
-
-.export-header {
-    padding: 20px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border-glass);
-}
-
-.export-actions {
+.export-header-actions {
     display: flex;
     gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-glass);
 }
 
 .export-content {
@@ -465,6 +431,7 @@ body,
     line-height: 1.6;
     color: var(--text-secondary);
     background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-sm);
 }
 
 /* ─── Shortcuts Popup ─── */

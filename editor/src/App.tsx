@@ -21,6 +21,7 @@ import { PreviewPanel } from "./components/PreviewPanel";
 import { AnalysisPanel } from "./components/AnalysisPanel";
 import { StyleEditor } from "./components/StyleEditor";
 import { ActorManager } from "./components/ActorManager";
+import { Modal } from "./components/Modal";
 import { 
   IconEditor, 
   IconStyles, 
@@ -438,27 +439,24 @@ export function App() {
             </div>
           </div>
 
-          {exported && (
-            <div class="export-overlay">
-              <div class="export-modal">
-                <div class="export-header">
-                  <h3>Export Preview ({exportFormat.toUpperCase()})</h3>
-                  <div class="export-actions">
-                    <button class="btn btn-primary" onClick={handleDownload}>
-                      Download File
-                    </button>
-                    <button
-                      class="btn btn-secondary"
-                      onClick={() => setExported("")}
-                    >
-                      Close
-                    </button>
-                  </div>
-                </div>
-                <pre class="export-content">{exported}</pre>
-              </div>
+          <Modal 
+            isOpen={!!exported} 
+            onClose={() => setExported("")} 
+            title={`Export Preview (${exportFormat.toUpperCase()})`}
+          >
+            <div class="export-header-actions">
+              <button class="btn btn-primary" onClick={handleDownload}>
+                <IconDownload /> Download File
+              </button>
+              <button
+                class="btn btn-secondary"
+                onClick={() => setExported("")}
+              >
+                Close
+              </button>
             </div>
-          )}
+            <pre class="export-content">{exported}</pre>
+          </Modal>
         </>
       )}
     </div>
