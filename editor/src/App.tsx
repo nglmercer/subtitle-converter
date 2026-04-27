@@ -21,6 +21,15 @@ import { PreviewPanel } from "./components/PreviewPanel";
 import { AnalysisPanel } from "./components/AnalysisPanel";
 import { StyleEditor } from "./components/StyleEditor";
 import { ActorManager } from "./components/ActorManager";
+import { 
+  IconEditor, 
+  IconStyles, 
+  IconActors, 
+  IconAnalysis, 
+  IconSearch, 
+  IconDownload, 
+  IconKeyboard 
+} from "./components/Icons";
 
 export function App() {
   const [universal, setUniversal] = useState<UniversalSubtitle | null>(null);
@@ -234,7 +243,7 @@ export function App() {
                   onClick={() => setShowShortcuts((p) => !p)}
                   title="Keyboard shortcuts"
                 >
-                  <span class="icon">⌨</span>
+                  <IconKeyboard />
                 </button>
                 {showShortcuts && (
                   <div class="shortcuts-popup">
@@ -284,7 +293,7 @@ export function App() {
             <div class="panel panel-left">
               <div class="panel-header">
                 <div class="search-container">
-                  <span class="search-icon">🔍</span>
+                  <span class="search-icon"><IconSearch /></span>
                   <input
                     class="search-input"
                     ref={searchRef}
@@ -348,25 +357,25 @@ export function App() {
                   class={`tab-btn ${activeTab === 'editor' ? 'active' : ''}`}
                   onClick={() => setActiveTab('editor')}
                 >
-                  <span class="tab-icon">✎</span> Editor
+                  <span class="tab-icon"><IconEditor /></span> Editor
                 </button>
                 <button 
                   class={`tab-btn ${activeTab === 'styles' ? 'active' : ''}`}
                   onClick={() => setActiveTab('styles')}
                 >
-                  <span class="tab-icon">🎨</span> Styles
+                  <span class="tab-icon"><IconStyles /></span> Styles
                 </button>
                 <button 
                   class={`tab-btn ${activeTab === 'actors' ? 'active' : ''}`}
                   onClick={() => setActiveTab('actors')}
                 >
-                  <span class="tab-icon">👥</span> Actors
+                  <span class="tab-icon"><IconActors /></span> Actors
                 </button>
                 <button 
                   class={`tab-btn ${activeTab === 'analysis' ? 'active' : ''}`}
                   onClick={() => setActiveTab('analysis')}
                 >
-                  <span class="tab-icon">📊</span> Analysis
+                  <span class="tab-icon"><IconAnalysis /></span> Analysis
                 </button>
               </nav>
 

@@ -336,19 +336,21 @@ body,
 }
 
 .tab-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     cursor: pointer;
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     transition: all 0.2s;
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .tab-btn:hover {
@@ -385,9 +387,13 @@ body,
 }
 
 .persistent-preview {
-    padding: 0 24px 24px;
+    height: 320px;
+    flex-shrink: 0;
     background: var(--bg-surface);
     border-top: 1px solid var(--border-glass);
+    padding: 16px 24px 24px;
+    display: flex;
+    flex-direction: column;
 }
 
 .tab-empty {

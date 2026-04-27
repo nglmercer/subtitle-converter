@@ -1,3 +1,4 @@
+import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
 import type { StyleDefinition } from 'subs-converter';
 import { Modal } from './Modal';
@@ -80,11 +81,25 @@ const ALIGN_OPTIONS = [
   { value: 9, label: 'Top Right' },
 ];
 
-const ALIGN_ICONS: Record<number, string> = {
-  1: '⬋', 2: '⬇', 3: '⬊',
-  4: '⬅', 5: '●', 6: '➡',
-  7: '⬉', 8: '⬆', 9: '⬈',
-};
+function AlignIcon({ value }: { value: number }) {
+  const icons: Record<number, JSX.Element> = {
+    1: <polyline points="7 17 7 7 17 7" transform="rotate(-90 12 12)" />,
+    2: <><polyline points="7 13 12 18 17 13" /><line x1="12" y1="6" x2="12" y2="18" /></>,
+    3: <polyline points="7 17 7 7 17 7" transform="rotate(180 12 12)" />,
+    4: <><polyline points="11 17 6 12 11 7" /><line x1="18" y1="12" x2="6" y2="12" /></>,
+    5: <circle cx="12" cy="12" r="3" fill="currentColor" />,
+    6: <><polyline points="13 17 18 12 13 7" /><line x1="6" y1="12" x2="18" y2="12" /></>,
+    7: <polyline points="7 17 7 7 17 7" />,
+    8: <><polyline points="17 11 12 6 7 11" /><line x1="12" y1="18" x2="12" y2="6" /></>,
+    9: <polyline points="7 17 7 7 17 7" transform="rotate(90 12 12)" />,
+  };
+
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      {icons[value] || icons[5]}
+    </svg>
+  );
+}
 
 export function StyleEditor({ styles, onUpdate }: Props) {
   const [editingStyle, setEditingStyle] = useState<StyleDefinition | null>(null);
@@ -284,7 +299,7 @@ function StyleCard({ style, onEdit }: { style: StyleDefinition; onEdit: () => vo
         <span class="se-card-name">{style.name}</span>
         <span class="se-card-meta">{style.fontName || 'Arial'} {style.fontSize ?? 20}px</span>
       </div>
-      <div class="se-card-badge">{ALIGN_ICONS[style.alignment ?? 2] || ''}</div>
+      <div class="se-card-badge"><AlignIcon value={style.alignment ?? 2} /></div>
     </div>
   );
 }
